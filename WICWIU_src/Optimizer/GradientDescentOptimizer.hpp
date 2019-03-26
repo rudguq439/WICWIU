@@ -90,6 +90,7 @@ public:
         #ifdef __DEBUG__
         std::cout << "GradientDescentOptimizer::~GradientDescentOptimizer()" << '\n';
         #endif  // __DEBUG__
+        this->Delete();
     }
 
     /*!
@@ -135,6 +136,15 @@ public:
         return TRUE;
     }
 
+    int Delete(){
+        if (m_aaVelocity) {
+            delete m_aaVelocity;
+            m_aaVelocity = NULL;
+        }
+
+        return TRUE;
+    }
+
     /*!
     @brief m_aaVelocity내부의 Tensor의 device를 idOfDevice번째 GPU로 바꾼다.
     @param idOfDevice 사용 하는 GPU번호
@@ -157,11 +167,11 @@ public:
     virtual int UpdateParameter() {
         if (m_momentum == 0.f) {
             for (int i = 0; i < m_numOfParameter; i++) {
-                UpdateParameter((*m_ppParameter)[i]);
+                if((*m_ppParameter)[i]->GetIsTrainable()) UpdateParameter((*m_ppParameter)[i]);
             }
         } else {
             for (int i = 0; i < m_numOfParameter; i++) {
-                UpdateParameter((*m_ppParameter)[i], (*m_aaVelocity)[i]);
+                if((*m_ppParameter)[i]->GetIsTrainable()) UpdateParameter((*m_ppParameter)[i], (*m_aaVelocity)[i]);
             }
         }
 
@@ -226,11 +236,11 @@ public:
     virtual int UpdateParameterOnGPU() {
         if (m_momentum == 0.f) {
             for (int i = 0; i < m_numOfParameter; i++) {
-                UpdateParameterOnGPU((*m_ppParameter)[i]);
+                if((*m_ppParameter)[i]->GetIsTrainable()) UpdateParameterOnGPU((*m_ppParameter)[i]);
             }
         } else {
             for (int i = 0; i < m_numOfParameter; i++) {
-                UpdateParameterOnGPU((*m_ppParameter)[i], (*m_aaVelocity)[i]);
+                if((*m_ppParameter)[i]->GetIsTrainable()) UpdateParameterOnGPU((*m_ppParameter)[i], (*m_aaVelocity)[i]);
             }
         }
 
