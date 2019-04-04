@@ -20,7 +20,7 @@ public:
 
         // ======================= layer 1 ======================
         out = new Linear<float>(out, 100, 256, TRUE, "G_L1");
-        out = new BatchNormalizeLayer<DTYPE>(out, TRUE, "G_BN1")
+        // out = new BatchNormalizeLayer<DTYPE>(out, TRUE, "G_BN1")
         out = new Relu<float>(out, "G_Tanh1");
 
        // ======================= layer 2 ======================
