@@ -4,7 +4,7 @@
 #include "../LossFunction.hpp"
 
 template<typename DTYPE>
-class GeneratorLoss : public LossFunction<DTYPE>{
+class VanilaGeneratorLoss : public LossFunction<DTYPE>{
 public:
     GeneratorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
         this->Alloc(pOperator);
@@ -20,7 +20,7 @@ public:
         int batchsize   = pInput->GetResult()->GetBatchSize();
 
     
-        this->SetResult(new Tensor<DTYPE>(timesize, batchsize, 1, 1, 1));
+        this->SetResult(new Tensor<DTYPE>(timesize, 1, 1, 1, 1));
 
         return TRUE;
     }
@@ -42,17 +42,19 @@ public:
 
         int start = 0;
         int end   = 0;
-
-        DTYPE tmp = 0.f;
+        float sumOfLossBatches = 0.f;
 
         for (int ba = 0; ba < batchsize; ba++) {
             start = (ti * batchsize + ba) * capacity;
             end   = start + capacity;
 
             for (int i = start; i < end; i++) {
-                (*result)[i] += - log((*input)[i]);
+                sumOfLossBatches += - log((*input)[i]);
             }
         }
+        if(batchsize != 0)
+            (*result)[0] = sumOfLossBatches / batchsize;
+
         return result;
     }
 

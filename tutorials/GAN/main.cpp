@@ -23,28 +23,25 @@ int main(int argc, char const *argv[]) {
 
     // ======================= Select net ===================
     GAN<float> *net  = new my_GAN(z, x, label);
-    // NeuralNetwork<float> *net = new my_NN(x, label, isSLP);
-    // NeuralNetwork<float> *net = new my_NN(x, label, isMLP);
-    // NeuralNetwork<float> *net = Resnet14<float>(x, label);
 
     // ======================= Prepare Data ===================
     MNISTDataSet<float> *dataset = CreateMNISTDataSet<float>();
 
 #ifdef __CUDNN__
-    // x->SetDeviceGPU(GPUID);
-    // label->SetDeviceGPU(GPUID);
     net->SetDeviceGPU(GPUID);
 #endif  // __CUDNN__
 
     net->PrintGraphInformation();
 
-    float best_acc = 0;
+    float bestGenLoss  = 0.f;
+    float bestDiscLoss = 0.f;
     int   epoch    = 0;
 
     // @ When load parameters
     net->Load(filename);
 
-    std::cout << "best_acc : " << best_acc << '\n';
+    std::cout << "bestGenLoss : " << bestGenLoss << '\n';
+    std::cout << "bestDiscLoss : " << bestDiscLoss << '\n';
     std::cout << "epoch : " << epoch << '\n';
 
     for (int i = epoch + 1; i < EPOCH; i++) {
@@ -57,8 +54,8 @@ int main(int argc, char const *argv[]) {
         }
 
         // ======================= Train =======================
-        float train_accuracy = 0.f;
-        float train_avg_loss = 0.f;
+        float genLoss  = 0.f;
+        float discLoss = 0.f;
 
         net->SetModeTrain();
 
@@ -68,9 +65,10 @@ int main(int argc, char const *argv[]) {
             dataset->CreateTrainDataPair(BATCH);
 
             Tensor<float> *x_t = dataset->GetTrainFeedImage();
+            //Tensor<float> *z_t = NoiseGeneratorLoss<float>();
 
 #ifdef __CUDNN__
-            x_t->SetDeviceGPU(GPUID);  // 異뷀썑 ?먮룞???꾩슂
+            x_t->SetDeviceGPU(GPUID); 
 #endif  // __CUDNN__
             // std::cin >> temp;
             net->ResetParameterGradient();
@@ -81,7 +79,17 @@ int main(int argc, char const *argv[]) {
             net->FeedInputTensor(z_t);
             net->TrainGenerator();
 
-            // // std::cin >> temp;
+            genLoss  = net->GetGeneratorLossFunction()->GetResult()[0];
+            discLoss = net->GetDiscriminatorLossFunction()->GetResult()[0];
+
+            printf("\rTrain complete percentage is %d / %d -> Generator Loss : %f, Discriminator Loss : %f",
+                   j + 1,
+                   LOOP_FOR_TRAIN,
+                   genLoss,
+                   discLoss);
+             fflush(stdout);
+
+            // ** Legacy of other main.cpp ** 
             // train_accuracy += net->GetAccuracy();
             // train_avg_loss += net->GetLoss();
             //
@@ -92,13 +100,14 @@ int main(int argc, char const *argv[]) {
             //        /*nProcessExcuteTime*/);
             // fflush(stdout);
         }
+
         endTime            = clock();
         nProcessExcuteTime = ((double)(endTime - startTime)) / CLOCKS_PER_SEC;
         printf("\n(excution time per epoch : %f)\n\n", nProcessExcuteTime);
 
         // ======================= Test ======================
-        float test_accuracy = 0.f;
-        float test_avg_loss = 0.f;
+        float testGenLoss  = 0.f;
+        float testDiscLoss = 0.f;
 
         net->SetModeInference();
 
@@ -111,18 +120,21 @@ int main(int argc, char const *argv[]) {
             net->FeedInputTensor(1, z_t);
             net->Test();
 
-            // test_accuracy += net->GetAccuracy();
-            // test_avg_loss += net->GetLoss();
-            //
-            // printf("\rTest complete percentage is %d / %d -> loss : %f, acc : %f",
-            //        j + 1, LOOP_FOR_TEST,
-            //        test_avg_loss / (j + 1),
-            //        test_accuracy / (j + 1));
-            // fflush(stdout);
+            testGenLoss  = net->GetGeneratorLossFunction()->GetResult()[0];
+            testDiscLoss = net->GetDiscriminatorLossFunction()->GetResult()[0];
+
+            
+            printf("\rTest complete percentage is %d / %d -> loss : %f, acc : %f",
+                   j + 1,
+                   LOOP_FOR_TEST,
+                   testGenLoss,
+                   testDiscLoss);
+            fflush(stdout);
         }
         std::cout << "\n\n";
 
-        if ((best_acc < (test_accuracy / LOOP_FOR_TEST))) {
+        // Global Optimal C(G) = -log4
+        if ( abs(- 1.0 * log(4) - bestGenLoss) > abs(- 1.0 * log(4) - testGenLoss) ) {
             net->Save(filename);
         }
     }

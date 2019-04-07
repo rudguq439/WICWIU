@@ -4,7 +4,7 @@
 #include "../LossFunction.hpp"
 
 template<typename DTYPE>
-class DiscriminatorLoss : public LossFunction<DTYPE>{
+class VanilaDiscriminatorLoss : public LossFunction<DTYPE>{
 public:
     DiscriminatorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
         #ifdef __DEBUG__
@@ -29,7 +29,7 @@ public:
         int timesize    = pInput->GetResult()->GetTimeSize();
         int batchsize   = pInput->GetResult()->GetBatchSize();
 
-        this->SetResult(new Tensor<DTYPE>(timesize, batchsize, 1, 1, 1));
+        this->SetResult(new Tensor<DTYPE>(timesize, 1, 1, 1, 1));
 
         return TRUE;
     }
@@ -51,6 +51,7 @@ public:
 
         int start = 0;
         int end   = 0;
+        float sumOfLossBatches = 0.f;
 
         // generator를 넣은 D의 계산
         for (int ba = 0; ba < batchsize; ba++) {
@@ -63,10 +64,13 @@ public:
                 // Label = +1 --> Real input for D, so +1*logD(x)
                 // Label = -1 --> Fake input for D, so -1*logD(G(z))
                 // Add to result. So result = logD(x) - logD(G(z))
-                (*result)[i] += -1 * (*label)[i] * log((*input)[i]);
+                sumOfLossBatches += -1 * (*label)[i] * log((*input)[i]);
             }
 
         }
+        if(batchsize != 0)
+            (*result)[0] = sumOfLossBatches / batchsize;
+
         return result;
     }
 
