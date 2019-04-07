@@ -5,8 +5,6 @@
 
 template<typename DTYPE>
 class DiscriminatorLoss : public LossFunction<DTYPE>{
-private:
-
 public:
     DiscriminatorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
         #ifdef __DEBUG__
@@ -54,9 +52,6 @@ public:
         int start = 0;
         int end   = 0;
 
-
-        DTYPE fake_inDWithLog = 0.f;
-        DTYPE real_inDWithLog = 0.f;
         // generator를 넣은 D의 계산
         for (int ba = 0; ba < batchsize; ba++) {
             start = (ti * batchsize + ba) * capacity;
@@ -68,9 +63,9 @@ public:
                 // Label = +1 --> Real input for D, so +1*logD(x)
                 // Label = -1 --> Fake input for D, so -1*logD(G(z))
                 // Add to result. So result = logD(x) - logD(G(z))
-                (*result)[i] += (*label)[i] * log((*input)[i]);
+                (*result)[i] += -1 * (*label)[i] * log((*input)[i]);
             }
-            
+
         }
         return result;
     }
