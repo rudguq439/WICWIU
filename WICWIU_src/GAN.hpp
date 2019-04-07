@@ -2,6 +2,9 @@
 #include "Generator.hpp"
 #include "GANLossFunction.hpp"
 
+#define REALLABEL 1
+#define FAKELABEL -1
+
 template<typename DTYPE> class GAN : public NeuralNetwork<DTYPE> {
 private:
     NeuralNetwork<DTYPE> *m_pGenerator;
@@ -249,7 +252,7 @@ template<typename DTYPE> int GAN<DTYPE>::TrainGeneratorOnCPU(){
     this->ResetGeneratorLossFunctionResult();
     this->ResetGeneratorLossFunctionGradient();
 
-    this->AllocLabel(1);
+    this->AllocLabel(REALLABEL);
     this->ForwardPropagate();
     m_aGeneratorLossFunction->ForwardPropagate();
     m_aGeneratorLossFunction->BackPropagate();
@@ -266,13 +269,13 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnCPU(){
     this->ResetDiscriminatorLossFunctionResult();
     this->ResetDiscriminatorLossFunctionGradient();
 
-    this->AllocLabel(1);
+    this->AllocLabel(REALLABEL);
     m_pGenerator->GetOutputContainer()->SetResult(m_pRealData->GetResult());
     m_pDiscriminator->ForwardPropagate();
     m_aDiscriminatorLossFunction->ForwardPropagate();
     m_aDiscriminatorLossFunction->BackPropagate();
 
-    this->AllocLabel(-1);
+    this->AllocLabel(FAKELABEL);
     this->ForwardPropagate();
     m_aDiscriminatorLossFunction->ForwardPropagate();
     m_aDiscriminatorLossFunction->BackPropagate();
@@ -301,7 +304,7 @@ template<typename DTYPE> int GAN<DTYPE>::TrainGeneratorOnGPU(){
         this->ResetGeneratorLossFunctionResult();
         this->ResetGeneratorLossFunctionGradient();
 
-        this->AllocLabel(1);
+        this->AllocLabel(REALLABEL);
         this->ForwardPropagateOnGPU();
         m_aGeneratorLossFunction->ForwardPropagateOnGPU();
         m_aGeneratorLossFunction->BackPropagateOnGPU();
@@ -322,13 +325,13 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnGPU(){
         this->ResetDiscriminatorLossFunctionResult();
         this->ResetDiscriminatorLossFunctionGradient();
 
-        this->AllocLabel(1);
+        this->AllocLabel(REALLABEL);
         m_pGenerator->GetOutputContainer()->SetResult(this->GetRealInput());
         m_pDiscriminator->ForwardPropagateOnGPU();
         m_aDiscriminatorLossFunction->ForwardPropagateOnGPU();
         m_aDiscriminatorLossFunction->BackPropagateOnGPU();
 
-        this->AllocLabel(-1);
+        this->AllocLabel(FAKELABEL);
         this->ForwardPropagateOnGPU();
         m_aDiscriminatorLossFunction->ForwardPropagateOnGPU();
         m_aDiscriminatorLossFunction->BackPropagateOnGPU();
