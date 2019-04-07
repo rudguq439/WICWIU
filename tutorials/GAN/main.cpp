@@ -1,11 +1,11 @@
-#include "net/my_CNN.hpp"
-#include "net/my_NN.hpp"
-#include "net/my_Resnet.hpp"
+#include "net/my_Generator.hpp"
+#include "net/my_Discriminator.hpp"
+#include "net/my_GAN.hpp"
 #include "MNIST_Reader.hpp"
 #include <time.h>
 
 #define BATCH                 100
-#define EPOCH                 2
+#define EPOCH                 10
 #define LOOP_FOR_TRAIN        (60000 / BATCH)
 #define LOOP_FOR_TEST         (10000 / BATCH)
 #define LOOP_FOR_TRAIN_DISC   5
@@ -14,7 +14,7 @@
 int main(int argc, char const *argv[]) {
     clock_t startTime, endTime;
     double  nProcessExcuteTime;
-    char filename[]      = "MNIST_parmas";
+    char filename[]      = "GAN_params";
 
     // create input, label data placeholder -> Tensorholder
     Tensorholder<float> *z     = new Tensorholder<float>(1, BATCH, 1, 1, 100, "z");
@@ -65,10 +65,9 @@ int main(int argc, char const *argv[]) {
             dataset->CreateTrainDataPair(BATCH);
 
             Tensor<float> *x_t = dataset->GetTrainFeedImage();
-            //Tensor<float> *z_t = NoiseGeneratorLoss<float>();
 
 #ifdef __CUDNN__
-            x_t->SetDeviceGPU(GPUID); 
+            x_t->SetDeviceGPU(GPUID);
 #endif  // __CUDNN__
             // std::cin >> temp;
             net->ResetParameterGradient();
@@ -89,7 +88,7 @@ int main(int argc, char const *argv[]) {
                    discLoss);
              fflush(stdout);
 
-            // ** Legacy of other main.cpp ** 
+            // ** Legacy of other main.cpp **
             // train_accuracy += net->GetAccuracy();
             // train_avg_loss += net->GetLoss();
             //
@@ -123,7 +122,7 @@ int main(int argc, char const *argv[]) {
             testGenLoss  = net->GetGeneratorLossFunction()->GetResult()[0];
             testDiscLoss = net->GetDiscriminatorLossFunction()->GetResult()[0];
 
-            
+
             printf("\rTest complete percentage is %d / %d -> loss : %f, acc : %f",
                    j + 1,
                    LOOP_FOR_TEST,
