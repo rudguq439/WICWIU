@@ -81,9 +81,9 @@ template<typename DTYPE> void GAN<DTYPE>::Delete() {
     std::cout << "GAN<DTYPE>::Delete()" << '\n';
     #endif  // __DEBUG__`
 
-    // if (m_pRealInput) {
-    //     delete m_pRealInput;
-    //     m_pRealInput = NULL;
+    // if (m_pRealData) {
+    //     delete m_pRealData;
+    //     m_pRealData = NULL;
     // }
     //
     // if (m_pLabel) {
@@ -123,7 +123,7 @@ template<typename DTYPE> GAN<DTYPE>::GAN() : NeuralNetwork<DTYPE>() {
     m_pGenerator = NULL;
     m_pDiscriminator = NULL;
 
-    m_pRealInput = NULL;
+    m_pRealData = NULL;
     m_pLabel = NULL;
 
     m_aGeneratorLossFunction = NULL;
@@ -140,19 +140,19 @@ template<typename DTYPE> GAN<DTYPE>::~GAN(){
 }
 
 // Setter
-template<typename DTYPE> NeuralNetwork<DTYPE>* GAN<DTYPE>::SetGenerator(Generator<DTYPE> *pGen){
+template<typename DTYPE> NeuralNetwork<DTYPE>* GAN<DTYPE>::SetGenerator(NeuralNetwork<DTYPE> *pGen){
     m_pGenerator = pGen;
     return m_pGenerator;
 }
 
-template<typename DTYPE> NeuralNetwork<DTYPE>* GAN<DTYPE>::SetDiscriminator(LossFunction<DTYPE> *pDisc){
+template<typename DTYPE> NeuralNetwork<DTYPE>* GAN<DTYPE>::SetDiscriminator(NeuralNetwork<DTYPE> *pDisc){
     m_pDiscriminator = pDisc;
     return m_pDiscriminator;
 }
 
 template<typename DTYPE> Tensorholder<DTYPE>* GAN<DTYPE>::SetRealData(Tensorholder<DTYPE> *pRealData){
-    m_aRealData = pRealData;
-    return m_aRealData;
+    m_pRealData = pRealData;
+    return m_pRealData;
 }
 
 template<typename DTYPE> Tensorholder<DTYPE>* GAN<DTYPE>::SetLabel(Tensorholder<DTYPE> *pLabel){
@@ -185,7 +185,7 @@ template<typename DTYPE> Optimizer<DTYPE>* GAN<DTYPE>::SetGeneratorOptimizer(Opt
 }
 
 template<typename DTYPE> Optimizer<DTYPE>* GAN<DTYPE>::SetDiscriminatorOptimizer(Optimizer<DTYPE> *pDiscOpt){
-    return m_pDiscriminator->SetOptimizer(pDiscOpt)
+    return m_pDiscriminator->SetOptimizer(pDiscOpt);
 }
 
 // Getter
@@ -239,10 +239,10 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminator(){
 
 template<typename DTYPE> int GAN<DTYPE>::Test() {
   if(this->GetDevice() == CPU) {
-      TestGeneratorOnCPU();
+      TestOnCPU();
   } else if(this->GetDevice() == GPU) {
-      TestGeneratorOnGPU();
-  } else return FALSE:
+      TestOnGPU();
+  } else return FALSE;
 }
 
 template<typename DTYPE> int GAN<DTYPE>::TrainGeneratorOnCPU(){
@@ -257,7 +257,7 @@ template<typename DTYPE> int GAN<DTYPE>::TrainGeneratorOnCPU(){
     m_aGeneratorLossFunction->BackPropagate();
     this->BackPropagate();
 
-    m_pGenerator->UpdateParameter();
+    this->GetGeneratorOptimizer()->UpdateParameter();
 
     return TRUE;
 }
@@ -281,12 +281,12 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnCPU(){
 
     m_pDiscriminator->BackPropagate();
 
-    m_pDiscriminator->UpdateParameter();
+    this->GetDiscriminatorOptimizer()->UpdateParameter();
 
     return TRUE;
 }
 
-template<typename DTYPE> int GAN<DTYPE>::TestGeneratorOnCPU(){
+template<typename DTYPE> int GAN<DTYPE>::TestOnCPU(){
     m_pGenerator->ResetResult();
     m_pGenerator->ForwardPropagate();
 
@@ -309,7 +309,7 @@ template<typename DTYPE> int GAN<DTYPE>::TrainGeneratorOnGPU(){
         m_aGeneratorLossFunction->BackPropagateOnGPU();
         this->BackPropagateOnGPU();
 
-        m_pGenerator->UpdateParameterOnGPU();
+        this->GetGeneratorOptimizer()->UpdateParameterOnGPU();
 
     #else  // __CUDNN__
         std::cout << "There is no GPU option!" << '\n';
@@ -337,7 +337,7 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnGPU(){
 
         m_pDiscriminator->BackPropagateOnGPU();
 
-        m_pDiscriminator->UpdateParameterOnGPU();
+        this->GetDiscriminatorOptimizer()->UpdateParameterOnGPU();
 
     #else  // __CUDNN__
         std::cout << "There is no GPU option!" << '\n';
@@ -345,7 +345,7 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnGPU(){
     #endif  // __CUDNN__
 }
 
-template<typename DTYPE> int GAN<DTYPE>::TestGeneratorOnGPU(){
+template<typename DTYPE> int GAN<DTYPE>::TestOnGPU(){
     #ifdef __CUDNN__
         this->ResetResult();
         this->ForwardPropagateOnGPU();
