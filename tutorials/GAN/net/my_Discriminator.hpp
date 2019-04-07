@@ -14,10 +14,10 @@ public:
     }
 
     int Alloc(Tensorholder<float> *x){
-        SetInput(x);
-        
+        this->SetInput(x);
+
         Operator<float> *out = x;
-        
+
         // ======================= layer 1 ======================
         out = new Linear<float>(out, 784, 512, TRUE, "D_L1");
         // out = new BatchNormalizeLayer<DTYPE>(out, TRUE, "D_BN1")
@@ -33,6 +33,6 @@ public:
         // out = new BatchNormalizeLayer<DTYPE>(out, TRUE, "D_BN3")
         out = new Relu<float>(out, "D_Tanh3");
 
-        AnalyzeGraph(out);
+        this->AnalyzeGraph(out);
     }
-}
+};

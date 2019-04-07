@@ -14,11 +14,11 @@ public:
     }
 
     int Alloc(Tensorholder<float> *z, Tensorholder<float> *x, Tensorholder<float> *label){
-        setInput(z, x, label);
+        this->setInput(z, x, label);
 
         m_pGenerator = new my_Generator<float>(z);
         m_pDiscriminator = new my_Discriminator<float>(m_pGenerator);
-        AnalyzeGraph(m_pDiscriminator);
+        this->AnalyzeGraph(m_pDiscriminator);
 
         this->SetRealInput(x);
         this->SetLabel(label);

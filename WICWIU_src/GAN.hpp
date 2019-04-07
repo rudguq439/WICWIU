@@ -1,6 +1,5 @@
-#include "Discriminator.hpp"
-#include "Generator.hpp"
-#include "GANLossFunction.hpp"
+#include "LossFunction/VanilaGeneratorLoss.hpp"
+#include "LossFunction/VanilaDiscriminatorLoss.hpp"
 
 #define REALLABEL 1
 #define FAKELABEL -1
