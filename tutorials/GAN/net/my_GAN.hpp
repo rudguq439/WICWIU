@@ -27,6 +27,6 @@ public:
         SetGANLossFunctions(new VanilaGeneratorLoss<float>(m_pDiscriminator, this->GetLabel()), new VanilaDiscriminatorLoss<float>(m_pDiscriminator, this->GetLabel()));
 
         // ======================= Select Optimizer ===================
-        SetGANOptimizers(new RMSPropOptimizer<float>(GetParameter(), 0.01, 0.9, MAXIMIZE), new RMSPropOptimizer<float>(GetParameter(), 0.01, 0.9, MINIMIZE));
+        SetGANOptimizers(new RMSPropOptimizer<float>(m_pGenerator->GetParameter(), 0.01, 0.9, MAXIMIZE), new RMSPropOptimizer<float>(m_pDiscriminator->GetParameter(), 0.01, 0.9, MINIMIZE));
     }
 }
