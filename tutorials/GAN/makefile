@@ -1,83 +1,46 @@
 .SUFFIXES = .cpp .o
 
 CFLAGS = -O2 -std=c++11 -g
-
-# if cuda device, cuda lib, or cuDNN is not installed, disable the following line
 ENABLE_CUDNN = -D__CUDNN__
-
 #DFLAGS = -D__DEBUG__
 
-INCLUDE_PATH = -I/usr/local/cuda/include
-LIB_PATH = -L. -L/usr/local/cuda/lib64
+LFLAGS = -lcudart -lcudnn -lpthread -ljpeg -lturbojpeg
+
+INCLUDE_PATH = -I/usr/local/cuda/include -I/opt/libjpeg-turbo/include -I/opt/libjpeg-turbo/lib64
+# LIB_PATH = -L. -L/usr/local/cuda/lib64 -I/opt/libjpeg-turbo/lib64 # for deep05
+LIB_PATH = -L. -L/usr/local/cuda/lib64 -L/opt/libjpeg-turbo/lib64 # for deep300
 
 CC = g++
-ifdef ENABLE_CUDNN
-	LINKER = nvcc
-	LFLAGS = -lcudart -lcudnn -lpthread
-else
-	LINKER = g++
-	LFLAGS = -lpthread
-endif
+NVCC = nvcc
 
 WICWIU_LIB = ../../lib/libwicwiu.a
 
 WICWIU_SRCS = \
-	../../WICWIU_src/Utils.cpp	\
-	../../WICWIU_src/Shape.cpp
+	../../WICWIU_src/Shape.cpp	\
+	../../WICWIU_src/LongArray.cpp	\
+	../../WICWIU_src/Tensor.cpp	\
+	../../WICWIU_src/Operator.cpp	\
+	../../WICWIU_src/LossFunction.cpp	\
+	../../WICWIU_src/Optimizer.cpp	\
+	../../WICWIU_src/Module.cpp	\
+	../../WICWIU_src/NeuralNetwork.cpp
 
 WICWIU_OBJS = ${WICWIU_SRCS:.cpp=.o}
 
-ifdef	ENABLE_CUDNN
-	WICWIU_CUDA_SRCS = \
-		../../WICWIU_src/Utils_CUDA.cu \
-		../../WICWIU_src/Optimizer/AdamOptimizer_CUDA.cu \
-		../../WICWIU_src/Operator/Concatenate_CUDA.cu \
-		../../WICWIU_src/Optimizer/NagOptimizer_CUDA.cu \
-		../../WICWIU_src/Optimizer/AdagradOptimizer_CUDA.cu \
-		../../WICWIU_src/Optimizer/RMSPropOptimizer_CUDA.cu \
-		../../WICWIU_src/LossFunction/SoftmaxCrossEntropy_CUDA.cu
-
-	WICWIU_CUDA_OBJS = ${WICWIU_CUDA_SRCS:.cu=.o}
-endif
-
 all: main
+
 
 .cpp.o:
 	$(CC) $(CFLAGS) $(DFLAGS) $(ENABLE_CUDNN) $(INCLUDE_PATH) $(LIB_PATH) -c $< -o $@
 
-# for cuda code
-WICWIU_src/Utils_CUDA.o: WICWIU_src/Utils_CUDA.cu
-	$(NVCC) $(CFLAGS) $(DFLAGS) $(ENABLE_CUDNN) $(INCLUDE_PATH) -c $< -o $@
+#main: $(WICWIU_OBJS) main.o
+#	$(NVCC) $(CFLAGS) $(ENABLE_CUDNN) $(DFLAGS) $(LFLAGS) $(INCLUDE_PATH) $(LIB_PATH) -o $@ $(WICWIU_OBJS) main.o
 
-WICWIU_src/Optimizer/AdamOptimizer_CUDA.o: WICWIU_src/Optimizer/AdamOptimizer_CUDA.cu
-	$(NVCC) $(CFLAGS) $(DFLAGS) $(ENABLE_CUDNN) $(INCLUDE_PATH) -c $< -o $@
+main: main.o $(WICWIU_LIB)
+	$(NVCC) $(CFLAGS) $(ENABLE_CUDNN) $(DFLAGS) $(LFLAGS) $(INCLUDE_PATH) $(LIB_PATH) -o $@ $(WICWIU_LIB) main.o
 
-WICWIU_src/Optimizer/RMSPropOptimizer_CUDA.o: WICWIU_src/Optimizer/RMSPropOptimizer_CUDA.cu
-	$(NVCC) $(CFLAGS) $(DFLAGS) $(ENABLE_CUDNN) $(INCLUDE_PATH) -c $< -o $@
 
-WICWIU_src/Optimizer/NagOptimizer_CUDA.o: WICWIU_src/Optimizer/NagOptimizer_CUDA.cu
-	$(NVCC) $(CFLAGS) $(DFLAGS) $(ENABLE_CUDNN) $(INCLUDE_PATH) -c $< -o $@
-
-WICWIU_src/Optimizer/AdagradOptimizer_CUDA.o: WICWIU_src/Optimizer/AdagradOptimizer_CUDA.cu
-	$(NVCC) $(CFLAGS) $(DFLAGS) $(ENABLE_CUDNN) $(INCLUDE_PATH) -c $< -o $@
-
-WICWIU_src/Operator/Concatenate_CUDA.o: WICWIU_src/Operator/Concatenate_CUDA.cu
-	$(NVCC) $(CFLAGS) $(DFLAGS) $(ENABLE_CUDNN) $(INCLUDE_PATH) -c $< -o $@
-
-WICWIU_src/LossFunction/SoftmaxCrossEntropy_CUDA.o: WICWIU_src/LossFunction/SoftmaxCrossEntropy_CUDA.cu
-	$(NVCC) $(CFLAGS) $(DFLAGS) $(ENABLE_CUDNN) $(INCLUDE_PATH) -c $< -o $@
-
-ifdef	ENABLE_CUDNN
-main: $(WICWIU_LIB) main.o
-	$(LINKER) $(CFLAGS) $(ENABLE_CUDNN) $(DFLAGS) $(LFLAGS) $(INCLUDE_PATH) $(LIB_PATH) -o $@ $(WICWIU_LIB) main.o
-else
-main: $(WICWIU_LIB) main.o
-	$(LINKER) $(CFLAGS) $(ENABLE_CUDNN) $(DFLAGS) $(LFLAGS) $(INCLUDE_PATH) $(LIB_PATH) -o $@ ../../WICWIU_src/Utils.o ../../WICWIU_src/Shape.o main.o
-endif
-#main: main.o $(WICWIU_LIB)
-#	$(LINKER) $(CFLAGS) $(ENABLE_CUDNN) $(DFLAGS) $(LFLAGS) $(INCLUDE_PATH) $(LIB_PATH) -o $@ $(WICWIU_LIB) main.o
-
-$(WICWIU_LIB): $(WICWIU_SRC) $(WICWIU_CUDA_SRCS)
+$(WICWIU_LIB): $(WICWIU_SRC)
 	make -C ../..
 
 clean:
