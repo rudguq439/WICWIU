@@ -222,25 +222,25 @@ template<typename DTYPE> Optimizer<DTYPE>* GAN<DTYPE>::GetDiscriminatorOptimizer
 }
 
 template<typename DTYPE> int GAN<DTYPE>::TrainGenerator(){
-    if(this->GetDevice() = CPU) {
+    if(this->GetDevice() == CPU) {
         TrainGeneratorOnCPU();
-    } else if(this->GetDevice() = GPU) {
+    } else if(this->GetDevice() == GPU) {
         TrainGeneratorOnGPU();
     } else return FALSE;
 }
 
 template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminator(){
-    if(this->GetDevice() = CPU) {
+    if(this->GetDevice() == CPU) {
         TrainDiscriminatorOnCPU();
-    } else if(this->GetDevice() = GPU) {
+    } else if(this->GetDevice() == GPU) {
         TrainDiscriminatorOnGPU();
     } else return FALSE;
 }
 
 template<typename DTYPE> int GAN<DTYPE>::Test() {
-  if(this->GetDevice() = CPU) {
+  if(this->GetDevice() == CPU) {
       TestGeneratorOnCPU();
-  } else if(this->GetDevice() = GPU) {
+  } else if(this->GetDevice() == GPU) {
       TestGeneratorOnGPU();
   } else return FALSE:
 }
