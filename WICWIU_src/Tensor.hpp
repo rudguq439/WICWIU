@@ -78,8 +78,9 @@ public:
 
     void                     SetDeviceCPU();
 
-    int                      Save(FILE *fp);
-    int                      Load(FILE *fp);
+    int                      Save(FILE *fileForSave);
+    int                      Load(FILE *fileForLoad);
+
 #ifdef __CUDNN__
     void                     SetDeviceGPU(unsigned int idOfDevice);
 
@@ -90,14 +91,18 @@ public:
 
 
 #endif  // if __CUDNN__
-
-
     static Tensor<DTYPE>* Random_normal(int pSize0, int pSize1, int pSize2, int pSize3, int pSize4, float mean, float stddev, IsUseTime pAnswer = UseTime);
     static Tensor<DTYPE>* Random_normal(Shape *pShape, float mean, float stddev, IsUseTime pAnswer = UseTime);
+    static Tensor<DTYPE>* Truncated_normal(int pSize0, int pSize1, int pSize2, int pSize3, int pSize4, float mean, float stddev, float trunc, IsUseTime pAnswer = UseTime);
+    static Tensor<DTYPE>* Truncated_normal(Shape *pShape, float mean, float stddev, float trunc, IsUseTime pAnswer = UseTime);
+    static Tensor<DTYPE>* Random_Uniform(int pSize0, int pSize1, int pSize2, int pSize3, int pSize4, float LowerLimit, float UpperLimit, IsUseTime pAnswer = UseTime);
+    static Tensor<DTYPE>* Random_Uniform(Shape *pShape, float LowerLimit, float UpperLimit, IsUseTime pAnswer = UseTime);
+    
     static Tensor<DTYPE>* Zeros(int pSize0, int pSize1, int pSize2, int pSize3, int pSize4, IsUseTime pAnswer = UseTime);
     static Tensor<DTYPE>* Zeros(Shape *pShape, IsUseTime pAnswer = UseTime);
     static Tensor<DTYPE>* Constants(int pSize0, int pSize1, int pSize2, int pSize3, int pSize4, DTYPE constant, IsUseTime pAnswer = UseTime);
     static Tensor<DTYPE>* Constants(Shape *pShape, DTYPE constant, IsUseTime pAnswer = UseTime);
+
 };
 
 //////////////////////////////////////////////////////////////////////////////// for private method
@@ -767,7 +772,7 @@ template<typename DTYPE> void Tensor<DTYPE>::SetDeviceCPU() {
 *@return 성공 시 TRUE
 *@see LongArray<DTYPE>::Save(FILE *fileForSave), Tensor<DTYPE>::SetDeviceCPU()
 */
-template<typename DTYPE> int Tensor<DTYPE>::Save(FILE *fp) {
+template<typename DTYPE> int Tensor<DTYPE>::Save(FILE *fileForSave) {
     #ifdef __CUDNN__
     # if __DEBUG__
     std::cout << "Tensor<DTYPE>::Save(FILE *fileForSave)" << '\n';
@@ -787,7 +792,7 @@ template<typename DTYPE> int Tensor<DTYPE>::Save(FILE *fp) {
     # endif // __DEBUG__
     #endif  // __CUDNN__
 
-    m_aLongArray->Save(fp);
+    m_aLongArray->Save(fileForSave);
 
 
     return TRUE;
@@ -800,7 +805,7 @@ template<typename DTYPE> int Tensor<DTYPE>::Save(FILE *fp) {
 *@return 성공 시 TRUE
 *@see LongArray<DTYPE>::Load(FILE *fileForSave), Tensor<DTYPE>::SetDeviceCPU()
 */
-template<typename DTYPE> int Tensor<DTYPE>::Load(FILE *fp) {
+template<typename DTYPE> int Tensor<DTYPE>::Load(FILE *fileForLoad) {
     #ifdef __CUDNN__
     # if __DEBUG__
     std::cout << "Tensor<DTYPE>::Load(FILE *fileForSave)" << '\n';
@@ -820,7 +825,7 @@ template<typename DTYPE> int Tensor<DTYPE>::Load(FILE *fp) {
     # endif // __DEBUG__
     #endif  // __CUDNN__
 
-    m_aLongArray->Load(fp);
+    m_aLongArray->Load(fileForLoad);
 
     return TRUE;
 }
@@ -936,7 +941,6 @@ template<typename DTYPE> void Tensor<DTYPE>::Reset(cudnnHandle_t& pCudnnHandle) 
 #endif  // if __CUDNN__
 
 ////////////////////////////////////////////////////////////////////////////////static method
-
 /*!
 *@brief 정규분포를 따르는 임의의 값을 갖는 Tensor를 생성
 *@details pSize 0~4를 매개변수로 받는 Shape를 생성하고, mean을 평균으로 stddev를 표준편차로 갖는 정규분포에서 임의로 얻어진 값으로 초기화된 LongArray<DTYPE>를 갖는 텐서를 생성한다.
@@ -995,6 +999,86 @@ template<typename DTYPE> Tensor<DTYPE> *Tensor<DTYPE>::Random_normal(Shape *pSha
 
     return temp;
 }
+template<typename DTYPE> Tensor<DTYPE> *Tensor<DTYPE>::Truncated_normal(int pSize0, int pSize1, int pSize2, int pSize3, int pSize4, float mean, float stddev, float trunc, IsUseTime pAnswer) {
+    #ifdef __DEBUG__
+    std::cout << "Tensor<DTYPE>::Truncated_norma" << '\n';
+    #endif  // __DEBUG__
+
+    return Tensor<DTYPE>::Truncated_normal(new Shape(pSize0, pSize1, pSize2, pSize3, pSize4), mean, stddev, trunc, pAnswer);
+}
+
+template<typename DTYPE> Tensor<DTYPE> *Tensor<DTYPE>::Truncated_normal(Shape *pShape, float mean, float stddev, float trunc, IsUseTime pAnswer) {
+    #ifdef __DEBUG__
+    std::cout << "Tensor<DTYPE>::Truncated_norma" << '\n';
+    #endif  // __DEBUG__
+    srand((unsigned)time(NULL));
+
+    Tensor<DTYPE> *temp = new Tensor<DTYPE>(pShape, pAnswer);
+
+    int   capacity = temp->GetCapacity();
+    DTYPE v1 = 0.f, v2 = 0.f, mid_result = 0.f;
+
+    // Random number generator on normal distribution
+    for (int i = 0; i < capacity; i++) {
+        do {
+            v1         = 2 * ((float)rand() / RAND_MAX) - 1; // -1.0 ~ 1.0 까지의 값
+            v2         = 2 * ((float)rand() / RAND_MAX) - 1; // -1.0 ~ 1.0 까지의 값
+            mid_result = v1 * v1 + v2 * v2;
+        } while (mid_result >= 1 || mid_result == 0);
+
+        mid_result = sqrt((-2 * log(mid_result)) / mid_result);
+        mid_result = v1 * mid_result;
+
+        //If Random number over trunc
+        if(fabs(stddev * mid_result) > trunc){
+            i--;
+        }else {
+            (*temp)[i] = (stddev * mid_result) + mean;
+        }
+    }
+
+    return temp;
+}
+
+template<typename DTYPE> Tensor<DTYPE> *Tensor<DTYPE>::Random_Uniform(int pSize0, int pSize1, int pSize2, int pSize3, int pSize4, float LowerLimit, float UpperLimit, IsUseTime pAnswer) {
+    #ifdef __DEBUG__
+    std::cout << "Tensor<DTYPE>::Random_Uniform" << '\n';
+    #endif  // __DEBUG__
+
+    return Tensor<DTYPE>::Random_Uniform(new Shape(pSize0, pSize1, pSize2, pSize3, pSize4), LowerLimit, UpperLimit, pAnswer);
+}
+
+template<typename DTYPE> Tensor<DTYPE> *Tensor<DTYPE>::Random_Uniform(Shape *pShape, float LowerLimit, float UpperLimit, IsUseTime pAnswer) {
+    #ifdef __DEBUG__
+    std::cout << "Tensor<DTYPE>::Random_Uniform" << '\n';
+    #endif  // __DEBUG__
+    srand((unsigned)time(NULL));
+
+    Tensor<DTYPE> *temp = new Tensor<DTYPE>(pShape, pAnswer);
+
+    int   capacity = temp->GetCapacity();
+    // Random number generator(Uniform)
+    for(int i = 0; i < capacity; i++){
+        (*temp)[i] = (UpperLimit - LowerLimit) * ((float)rand() / RAND_MAX) + LowerLimit;
+    }
+
+    return temp;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*!
 *@brief 0으로 초기화된 Tensor를 생성
@@ -1131,5 +1215,4 @@ inline unsigned int Index3D(Shape *pShape, int ch, int ro, int co) {
 inline unsigned int Index2D(Shape *pShape, int ro, int co) {
     return ro * (*pShape)[1] + co;
 }
-
 #endif  // TENSOR_H_
