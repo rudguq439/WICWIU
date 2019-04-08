@@ -24,10 +24,10 @@ int main(int argc, char const *argv[]) {
 
     // create NoiseGenrator
     GaussianNoiseGenerator<float> *Gnoise = new GaussianNoiseGenerator<float>(1, BATCH, 1, 1, 100, 0, 1);
-    
+
 
     // ======================= Select net ===================
-    GAN<float> *net  = new my_GAN(z, x, label);
+    GAN<float> *net  = new my_GAN<float>(z, x, label);
 
     // ======================= Prepare Data ===================
     MNISTDataSet<float> *dataset = CreateMNISTDataSet<float>();
@@ -74,7 +74,7 @@ int main(int argc, char const *argv[]) {
 
             Tensor<float> *x_t = dataset->GetTrainFeedImage();
             Tensor<float> *z_t = Gnoise->GetNoiseFromBuffer();
-            
+
 
 #ifdef __CUDNN__
             x_t->SetDeviceGPU(GPUID);
@@ -83,10 +83,10 @@ int main(int argc, char const *argv[]) {
 
             net->ResetParameterGradient();
             for(int k = 0; k < LOOP_FOR_TRAIN_DISC; k++){
-                net->FeedInputTensor(z_t, x_t);
+                net->FeedInputTensor(2, z_t, x_t);
                 net->TrainDiscriminator();
             }
-            net->FeedInputTensor(z_t);
+            net->FeedInputTensor(1, z_t);
             net->TrainGenerator();
 
             genLoss  = net->GetGeneratorLossFunction()->GetResult()[0];
@@ -148,7 +148,7 @@ int main(int argc, char const *argv[]) {
             net->Save(filename);
         }
     }
-    
+
     //Stop making Noise
     Gnoise->StopProduce();
     delete Gnoise;
@@ -158,3 +158,7 @@ int main(int argc, char const *argv[]) {
 
     return 0;
 }
+
+// string filePath  = "MNIST.jpg";
+// const char *cstr = filePath.c_str();
+// Tensor2Image<float>(x_t, cstr, 3, 28, 28)

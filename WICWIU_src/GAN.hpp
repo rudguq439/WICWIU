@@ -1,5 +1,6 @@
 #include "LossFunction/VanilaGeneratorLoss.hpp"
 #include "LossFunction/VanilaDiscriminatorLoss.hpp"
+#include "NeuralNetwork.hpp"
 
 #define REALLABEL 1
 #define FAKELABEL -1
@@ -100,17 +101,13 @@ template<typename DTYPE> void GAN<DTYPE>::Delete() {
         delete m_aDiscriminatorLossFunction;
         m_aDiscriminatorLossFunction = NULL;
     }
-
-    #ifdef __CUDNN__
-        this->DeleteOnGPU();
-    #endif  // if __CUDNN__
 }
 
 template<typename DTYPE> int GAN<DTYPE>::AllocLabel(int plabelValue){
     #ifdef __DEBUG__
     std::cout << "GAN<DTYPE>::AllocLabel(int plabel)" << '\n';
     #endif  // __DEBUG__
-    m_pLabel->FeedTensor(Tensor<DTYPE>::Constants(m_pLabel->GetResult()->GetShape(), plabelValue, 1));
+    m_pLabel->FeedTensor(Tensor<DTYPE>::Constants(m_pLabel->GetResult()->GetShape(), plabelValue));
 
     return true;
 }
@@ -269,7 +266,7 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnCPU(){
     this->ResetDiscriminatorLossFunctionGradient();
 
     this->AllocLabel(REALLABEL);
-    m_pGenerator->GetOutputContainer()->SetResult(m_pRealData->GetResult());
+    m_pGenerator->SetResult(m_pRealData->GetResult());
     m_pDiscriminator->ForwardPropagate();
     m_aDiscriminatorLossFunction->ForwardPropagate();
     m_aDiscriminatorLossFunction->BackPropagate();
@@ -325,7 +322,7 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnGPU(){
         this->ResetDiscriminatorLossFunctionGradient();
 
         this->AllocLabel(REALLABEL);
-        m_pGenerator->GetOutputContainer()->SetResult(this->GetRealInput());
+        m_pGenerator->SetResult(m_pRealData->GetResult());
         m_pDiscriminator->ForwardPropagateOnGPU();
         m_aDiscriminatorLossFunction->ForwardPropagateOnGPU();
         m_aDiscriminatorLossFunction->BackPropagateOnGPU();
