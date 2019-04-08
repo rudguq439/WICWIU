@@ -6,9 +6,9 @@
 #include <semaphore.h>
 #include <pthread.h>
 
-#include "../Tensor.hpp" // to use IsUseTime
+#include "../../Tensor.hpp" // to use IsUseTime
 #include "../NoiseGenerator.hpp"
-#include "../Common.h"
+#include "../../Common.h"
 
 #define BUFF_SIZE 50
 #define THREAD_NUM 4

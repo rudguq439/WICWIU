@@ -49,7 +49,7 @@ int main(int argc, char const *argv[]) {
     std::cout << "bestDiscLoss : " << bestDiscLoss << '\n';
     std::cout << "epoch : " << epoch << '\n';
 
-    //Start making Noise
+    //Start make Noise
     Gnoise->StartProduce();
 
     for (int i = epoch + 1; i < EPOCH; i++) {

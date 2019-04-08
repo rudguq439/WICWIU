@@ -1,9 +1,7 @@
 #ifndef NOISEGENERATOR_H_
 #define NOISEGENERATOR_H_
 
-
-
-#include "Operator.hpp"
+#include "../Operator.hpp"
 
 /*!
 @class NoiseGenerator Class
