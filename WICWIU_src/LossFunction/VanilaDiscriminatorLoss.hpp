@@ -5,23 +5,33 @@
 
 template<typename DTYPE>
 class VanilaDiscriminatorLoss : public LossFunction<DTYPE>{
+private:
+    DTYPE m_epsilon;
 public:
+    VanilaDiscriminatorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, DTYPE epsilon, std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
+        #ifdef __DEBUG__
+        std::cout << "VanilaDiscriminatorLoss::VanilaDiscriminatorLoss(Operator<DTYPE> *, MetaParameter *, std::string)" << '\n';
+        #endif  // __DEBUG__
+        this->Alloc(pOperator, epsilon);
+    }
+
     VanilaDiscriminatorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
         #ifdef __DEBUG__
-        std::cout << "DiscriminatorLoss::DiscriminatorLoss(Operator<DTYPE> *, MetaParameter *, std::string)" << '\n';
+        std::cout << "VanilaDiscriminatorLoss::VanilaDiscriminatorLoss(Operator<DTYPE> *, MetaParameter *, std::string)" << '\n';
         #endif  // __DEBUG__
-        this->Alloc(pOperator);
+        this->Alloc(pOperator, 1e-6f);
     }
 
     virtual ~VanilaDiscriminatorLoss(){
         #ifdef __DEBUG__
-        std::cout << "DiscriminatorLoss::~DiscriminatorLoss()" << '\n';
+        std::cout << "VanilaDiscriminatorLoss::~VanilaDiscriminatorLoss()" << '\n';
         #endif  // __DEBUG__
+        Delete();
     }
 
-    virtual int Alloc(Operator<DTYPE> *pOperator){
+    virtual int Alloc(Operator<DTYPE> *pOperator, DTYPE epsilon){
         #ifdef __DEBUG__
-        std::cout << "DiscriminatorLoss::Alloc(Operator<DTYPE> *)" << '\n';
+        std::cout << "VanilaDiscriminatorLoss::Alloc(Operator<DTYPE> *)" << '\n';
         #endif  // __DEBUG__
 
         Operator<DTYPE> *pInput = pOperator;
@@ -30,6 +40,8 @@ public:
         int batchsize   = pInput->GetResult()->GetBatchSize();
 
         this->SetResult(new Tensor<DTYPE>(timesize, 1, 1, 1, 1));
+
+        m_epsilon = epsilon;
 
         return TRUE;
     }
@@ -64,7 +76,7 @@ public:
                 // Label = +1 --> Real input for D, so +1*logD(x)
                 // Label = -1 --> Fake input for D, so -1*logD(G(z))
                 // Add to result. So result = logD(x) - logD(G(z))
-                sumOfLossBatches += -1 * (*label)[i] * log((*input)[i]);
+                sumOfLossBatches += -1 * (*label)[i] * log((*input)[i] + m_epsilon);
             }
 
         }
@@ -100,7 +112,7 @@ public:
                 // Label = +1 --> Real input for D, so +1 * logD(x)
                 // Label = -1 --> Fake input for D, so -1 * logD(G(z))
                 // Add to result. - 넣은 이유는, 위의 식을 따라가기 위함
-                (*input_delta)[i] += ( (*label)[i] * -1.0 / (*input)[i] );
+                (*input_delta)[i] += ( (*label)[i] * -1.0 / ((*input)[i] + m_epsilon) );
             }
 
         }

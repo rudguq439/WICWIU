@@ -5,14 +5,33 @@
 
 template<typename DTYPE>
 class VanilaGeneratorLoss : public LossFunction<DTYPE>{
+private:
+DTYPE m_epsilon;
 public:
-    VanilaGeneratorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
-        this->Alloc(pOperator);
+    VanilaGeneratorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, DTYPE epsilon,  std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
+        #ifdef __DEBUG__
+        std::cout << "VanilaGeneratorLoss::VanilaGeneratorLoss(Operator<DTYPE> *, Operator<DTYPE> *, MetaParameter *, std::string)" << '\n';
+        #endif  // __DEBUG__
+        this->Alloc(pOperator, epsilon);
     }
 
-    virtual ~VanilaGeneratorLoss(){}
+    VanilaGeneratorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
+        std::cout << "VanilaGeneratorLoss::VanilaGeneratorLoss(Operator<DTYPE> *,
+         MetaParameter *, std::string)" << '\n';
+        this->Alloc(pOperator, 1e-6f);
+    }
 
-    virtual int Alloc(Operator<DTYPE> *pOperator){
+    virtual ~VanilaGeneratorLoss(){
+        #ifdef __DEBUG__
+        std::cout << "VanilaGeneratorLoss::~VanilaGeneratorLoss()" << '\n';
+        #endif  // __DEBUG__
+        Delete();
+    }
+
+    virtual int Alloc(Operator<DTYPE> *pOperator, DTYPE epsilon){
+        #ifdef __DEBUG__
+        std::cout << "VanilaGeneratorLoss::Alloc(Operator<DTYPE> *)" << '\n';
+        #endif  // __DEBUG__
 
         Operator<DTYPE> *pInput = pOperator;
 
@@ -22,8 +41,12 @@ public:
 
         this->SetResult(new Tensor<DTYPE>(timesize, 1, 1, 1, 1));
 
+        m_epsilon = epsilon;
+
         return TRUE;
     }
+
+    void Delete(){}
 
     Tensor<DTYPE>* ForwardPropagate(int pTime = 0) {
         Tensor<DTYPE> *input  = this->GetTensor();
@@ -49,7 +72,7 @@ public:
             end   = start + capacity;
 
             for (int i = start; i < end; i++) {
-                sumOfLossBatches += - log((*input)[i]);
+                sumOfLossBatches += - log((*input)[i] + m_epsilon);
             }
         }
         if(batchsize != 0)
@@ -79,7 +102,7 @@ public:
             end   = start + capacity;
 
             for (int i = start; i < end; i++) {
-                (*input_delta)[i] += 1.0 / (*input)[i];
+                (*input_delta)[i] += 1.0 / ((*input)[i] + m_epsilon);
             }
         }
 
