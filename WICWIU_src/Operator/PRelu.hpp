@@ -126,8 +126,8 @@ public:
     }
 #endif  // if __CUDNN__
 
-#ifdef __CUDNN__
     void Delete() {
+#ifdef __CUDNN__
         if (m_aInputTensorDesc) checkCUDNN(cudnnDestroyTensorDescriptor(m_aInputTensorDesc));
         m_aInputTensorDesc = NULL;
 
@@ -144,8 +144,8 @@ public:
         actDesc = NULL;
 
         // checkCudaErrors(cudaDeviceSynchronize());
-   }
 #endif  // if __CUDNN__
+   }
 
 
     /*!

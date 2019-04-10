@@ -62,12 +62,12 @@ public:
 
     int                                 TestOnCPU();
 
-#ifdef __CUDNN__
     int                                 TrainGeneratorOnGPU();
     int                                 TrainDiscriminatorOnGPU();
 
     int                                 TestOnGPU();
-#endif  // if __CUDNN__
+
+    int                                 ResetParameterGradient();
 
     int                                 ResetGeneratorLossFunctionResult();
     int                                 ResetGeneratorLossFunctionGradient();
@@ -107,7 +107,14 @@ template<typename DTYPE> int GAN<DTYPE>::AllocLabel(int plabelValue){
     #ifdef __DEBUG__
     std::cout << "GAN<DTYPE>::AllocLabel(int plabel)" << '\n';
     #endif  // __DEBUG__
+    std::cout << "why?" << '\n';
+    if(m_pLabel->GetResult()->GetShape())
+        std::cout << "m_pLabel->GetResult()->GetShape() True " << '\n';
+    else
+        std::cout << "m_pLabel->GetResult()->GetShape() False " << '\n';
+
     m_pLabel->FeedTensor(Tensor<DTYPE>::Constants(m_pLabel->GetResult()->GetShape(), plabelValue));
+    std::cout << "why?2" << '\n';
 
     return true;
 }
@@ -220,25 +227,25 @@ template<typename DTYPE> Optimizer<DTYPE>* GAN<DTYPE>::GetDiscriminatorOptimizer
 
 template<typename DTYPE> int GAN<DTYPE>::TrainGenerator(){
     if(this->GetDevice() == CPU) {
-        TrainGeneratorOnCPU();
+        this->TrainGeneratorOnCPU();
     } else if(this->GetDevice() == GPU) {
-        TrainGeneratorOnGPU();
+        this->TrainGeneratorOnGPU();
     } else return FALSE;
 }
 
 template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminator(){
     if(this->GetDevice() == CPU) {
-        TrainDiscriminatorOnCPU();
+        this->TrainDiscriminatorOnCPU();
     } else if(this->GetDevice() == GPU) {
-        TrainDiscriminatorOnGPU();
+        this->TrainDiscriminatorOnGPU();
     } else return FALSE;
 }
 
 template<typename DTYPE> int GAN<DTYPE>::Test() {
   if(this->GetDevice() == CPU) {
-      TestOnCPU();
+      this->TestOnCPU();
   } else if(this->GetDevice() == GPU) {
-      TestOnGPU();
+      this->TestOnGPU();
   } else return FALSE;
 }
 
@@ -260,25 +267,42 @@ template<typename DTYPE> int GAN<DTYPE>::TrainGeneratorOnCPU(){
 }
 
 template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnCPU(){
+    std::cout << "1"  << '\n';
     this->ResetResult();
+    std::cout << "2" << '\n';
     m_pDiscriminator->ResetGradient();
+    std::cout << "3" << '\n';
+
     this->ResetDiscriminatorLossFunctionResult();
+    std::cout << "4" << '\n';
     this->ResetDiscriminatorLossFunctionGradient();
+    std::cout << "5" << '\n';
 
     this->AllocLabel(REALLABEL);
+    std::cout << "6" << '\n';
     m_pGenerator->SetResult(m_pRealData->GetResult());
+    std::cout << "7" << '\n';
     m_pDiscriminator->ForwardPropagate();
+    std::cout << "8" << '\n';
     m_aDiscriminatorLossFunction->ForwardPropagate();
+    std::cout << "9" << '\n';
     m_aDiscriminatorLossFunction->BackPropagate();
+    std::cout << "10"<< '\n';
 
     this->AllocLabel(FAKELABEL);
+    std::cout << "11" << '\n';
     this->ForwardPropagate();
+    std::cout << "12" << '\n';
     m_aDiscriminatorLossFunction->ForwardPropagate();
+    std::cout << "13" << '\n';
     m_aDiscriminatorLossFunction->BackPropagate();
 
+    std::cout << "14" << '\n';
     m_pDiscriminator->BackPropagate();
 
+    std::cout << "15" << '\n';
     this->GetDiscriminatorOptimizer()->UpdateParameter();
+    std::cout << "16" << '\n';
 
     return TRUE;
 }
@@ -290,8 +314,6 @@ template<typename DTYPE> int GAN<DTYPE>::TestOnCPU(){
     return TRUE;
 }
 
-
-#ifdef __CUDNN__
 
 template<typename DTYPE> int GAN<DTYPE>::TrainGeneratorOnGPU(){
     #ifdef __CUDNN__
@@ -312,6 +334,8 @@ template<typename DTYPE> int GAN<DTYPE>::TrainGeneratorOnGPU(){
         std::cout << "There is no GPU option!" << '\n';
         exit(-1);
     #endif  // __CUDNN__
+
+    return TRUE;
 }
 
 template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnGPU(){
@@ -340,6 +364,8 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnGPU(){
         std::cout << "There is no GPU option!" << '\n';
         exit(-1);
     #endif  // __CUDNN__
+
+    return TRUE;
 }
 
 template<typename DTYPE> int GAN<DTYPE>::TestOnGPU(){
@@ -353,7 +379,13 @@ template<typename DTYPE> int GAN<DTYPE>::TestOnGPU(){
 
         return TRUE;
 }
-#endif
+
+template<typename DTYPE> int GAN<DTYPE>::ResetParameterGradient(){
+    this->GetGeneratorOptimizer()->ResetParameterGradient();
+    this->GetDiscriminatorOptimizer()->ResetParameterGradient();
+    return TRUE;
+}
+
 
 template<typename DTYPE> int GAN<DTYPE>::ResetGeneratorLossFunctionResult(){
     m_aGeneratorLossFunction->ResetResult();
