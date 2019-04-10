@@ -43,7 +43,7 @@ int main(int argc, char const *argv[]) {
     int   epoch        = 0;
 
     // @ When load parameters
-    net->Load(filename);
+    // net->Load(filename);
 
     std::cout << "bestGenLoss : " << bestGenLoss << '\n';
     std::cout << "bestDiscLoss : " << bestDiscLoss << '\n';
@@ -55,18 +55,17 @@ int main(int argc, char const *argv[]) {
     for (int i = epoch + 1; i < EPOCH; i++) {
         std::cout << "EPOCH : " << i << '\n';
 
-        if ((i + 1) % 50 == 0) {
-            std::cout << "Change learning rate!" << '\n';
-            float lr = net->GetOptimizer()->GetLearningRate();
-            net->GetOptimizer()->SetLearningRate(lr * 0.1);
-        }
+        // if ((i + 1) % 50 == 0) {
+        //     std::cout << "Change learning rate!" << '\n';
+        //     float lr = net->GetOptimizer()->GetLearningRate();
+        //     net->GetOptimizer()->SetLearningRate(lr * 0.1);
+        // }
 
         // ======================= Train =======================
         float genLoss  = 0.f;
         float discLoss = 0.f;
 
         net->SetModeTrain();
-
         startTime = clock();
 
         for (int j = 0; j < LOOP_FOR_TRAIN; j++) {
@@ -80,14 +79,18 @@ int main(int argc, char const *argv[]) {
             x_t->SetDeviceGPU(GPUID);
             z_t->SetDeviceGPU(GPUID);
 #endif  // __CUDNN__
-
             net->ResetParameterGradient();
             for(int k = 0; k < LOOP_FOR_TRAIN_DISC; k++){
+                std::cout << "for(int k = 0; k < LOOP_FOR_TRAIN_DISC; k++)" << '\n';
                 net->FeedInputTensor(2, z_t, x_t);
+                std::cout << "net->FeedInputTensor(2, z_t, x_t)" << '\n';
                 net->TrainDiscriminator();
+                std::cout << "net->TrainDiscriminator()" << '\n';
             }
             net->FeedInputTensor(1, z_t);
+            std::cout << "net->FeedInputTensor(1, z_t)" << '\n';
             net->TrainGenerator();
+            std::cout << "net->TrainGenerator()" << '\n';
 
             genLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 1)];
             discLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 1)];

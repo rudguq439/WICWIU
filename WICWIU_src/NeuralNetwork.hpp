@@ -564,7 +564,7 @@ template<typename DTYPE> void NeuralNetwork<DTYPE>::PrintGraphInformation() {
         std::cout << '\n';
     }
 
-    std::cout << "LossFunction: " << m_aLossFunction->GetName() << '\n';
+    // std::cout << "LossFunction: " << m_aLossFunction->GetName() << '\n';
     // std::cout << "Optimizern: " << m_aOptimizer->GetName() << '\n';
 }
 

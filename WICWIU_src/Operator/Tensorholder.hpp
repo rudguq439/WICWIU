@@ -140,6 +140,7 @@ public:
     @param pTensor Result로 설정 할 Tensor.
     */
     void FeedTensor(Tensor<DTYPE> *pTensor) {
+        std::cout << "FeedTensor(Tensor<DTYPE> *pTensor)" << '\n';
         this->SetResult(pTensor);
     }
 };

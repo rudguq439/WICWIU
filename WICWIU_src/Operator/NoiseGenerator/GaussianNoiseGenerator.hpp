@@ -15,7 +15,7 @@
 
 enum IsTruncated{
     UseTruncated,
-    NoUseTruncated, 
+    NoUseTruncated,
 };
 
 template<typename DTYPE> class GaussianNoiseGenerator : public NoiseGenerator<DTYPE> {
@@ -71,9 +71,9 @@ public:
         sem_init(&m_full,  0, 0);
         sem_init(&m_empty, 0, BUFF_SIZE);
         sem_init(&m_mutex, 0, 1);
-        
+
         m_isworking = 1;
-        
+
         Alloc();
     }
 
@@ -89,9 +89,9 @@ public:
         sem_init(&m_full,  0, 0);
         sem_init(&m_empty, 0, BUFF_SIZE);
         sem_init(&m_mutex, 0, 1);
-        
+
         m_isworking = 1;
-        
+
         Alloc();
     }
     GaussianNoiseGenerator(Shape *pShape, float mean, float stddev, float pTrunc, IsTruncated pTruncated = NoUseTruncated, IsUseTime pAnswer = NoUseTime, std::string pName = "No Name") : NoiseGenerator<DTYPE>(pShape, pName){
@@ -104,9 +104,9 @@ public:
         sem_init(&m_full,  0, 0);
         sem_init(&m_empty, 0, BUFF_SIZE);
         sem_init(&m_mutex, 0, 1);
-        
+
         m_isworking = 1;
-        
+
         Alloc();
     }
 
@@ -131,7 +131,7 @@ public:
 
         pthread_join(m_thread, NULL);
     }
-    
+
     static void* ThreadFunc(void *arg) {
         GaussianNoiseGenerator<DTYPE> *generator = (GaussianNoiseGenerator<DTYPE> *)arg;
 
@@ -146,8 +146,8 @@ public:
         int m_colsize = this->GetResult()->GetDim(4);
 
         do{
-            std::cout << "Generate Noise :" << m_aaQForNoise->size() << "\n";
-            //Tensor<DTYPE> *temp = Tensor<DTYPE>::Random_normal(m_timesize, m_batchsize, m_channelsize, m_rowsize, m_colsize, m_mean, m_stddev); 
+            // std::cout << "Generate Noise :" << m_aaQForNoise->size() << "\n";
+            //Tensor<DTYPE> *temp = Tensor<DTYPE>::Random_normal(m_timesize, m_batchsize, m_channelsize, m_rowsize, m_colsize, m_mean, m_stddev);
             Tensor<DTYPE> *temp = NULL;
 
             if(m_isTruncated == UseTruncated){
@@ -161,9 +161,9 @@ public:
             this->AddNoise2Buffer(temp);
 
             sem_post(&m_mutex);
-            sem_post(&m_full);   
+            sem_post(&m_full);
         } while(m_isworking);
-             
+
     }
 
     int AddNoise2Buffer(Tensor<DTYPE> *noise){
@@ -185,7 +185,7 @@ public:
         return result;
     }
 
-    
+
     void GenerateNoise(){
         int m_timesize = this->GetResult()->GetDim(0);
         int m_batchsize = this->GetResult()->GetDim(1);
@@ -199,7 +199,7 @@ public:
             this->SetResult(Tensor<float>::Random_normal(m_timesize, m_batchsize, m_channelsize, m_rowsize, m_colsize, m_mean, m_stddev));
         }
     }
-    
+
 
 
 
@@ -208,14 +208,14 @@ public:
     void ShowNoise(){
         Tensor<DTYPE> *temp;
         temp = this->GetResult();
-        
+
         for(int i=0; i < temp->GetColSize() * temp->GetRowSize(); i++){
             printf("%f \n", (*temp)[i]);
-        
+
         }
     }
 
-    
+
     int ForwardPropagate(int pTime = 0){};
     int BackPropagate(int pTime = 0){};
 
