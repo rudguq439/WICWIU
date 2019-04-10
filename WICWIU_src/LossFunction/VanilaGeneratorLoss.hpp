@@ -6,11 +6,11 @@
 template<typename DTYPE>
 class VanilaGeneratorLoss : public LossFunction<DTYPE>{
 public:
-    GeneratorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
+    VanilaGeneratorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
         this->Alloc(pOperator);
     }
 
-    virtual ~GeneratorLoss(){}
+    virtual ~VanilaGeneratorLoss(){}
 
     virtual int Alloc(Operator<DTYPE> *pOperator){
 
@@ -19,7 +19,7 @@ public:
         int timesize    = pInput->GetResult()->GetTimeSize();
         int batchsize   = pInput->GetResult()->GetBatchSize();
 
-    
+
         this->SetResult(new Tensor<DTYPE>(timesize, 1, 1, 1, 1));
 
         return TRUE;
@@ -71,12 +71,15 @@ public:
 
         int ti = pTime;
 
+        int start = 0;
+        int end   = 0;
+
         for (int ba = 0; ba < batchsize; ba++) {
             start = (ti * batchsize + ba) * capacity;
             end   = start + capacity;
 
             for (int i = start; i < end; i++) {
-                (*input_delta)[i] += 1.0 / (*input)[i]
+                (*input_delta)[i] += 1.0 / (*input)[i];
             }
         }
 

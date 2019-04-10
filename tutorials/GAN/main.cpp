@@ -89,8 +89,8 @@ int main(int argc, char const *argv[]) {
             net->FeedInputTensor(1, z_t);
             net->TrainGenerator();
 
-            genLoss  = net->GetGeneratorLossFunction()->GetResult()[0];
-            discLoss = net->GetDiscriminatorLossFunction()->GetResult()[0];
+            genLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 1)];
+            discLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 1)];
 
             printf("\rTrain complete percentage is %d / %d -> Generator Loss : %f, Discriminator Loss : %f",
                    j + 1,
@@ -131,8 +131,8 @@ int main(int argc, char const *argv[]) {
             net->FeedInputTensor(1, z_t);
             net->Test();
 
-            testGenLoss  = net->GetGeneratorLossFunction()->GetResult()[0];
-            testDiscLoss = net->GetDiscriminatorLossFunction()->GetResult()[0];
+            testGenLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 1)];
+            testDiscLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 1)];
 
             printf("\rTest complete percentage is %d / %d -> loss : %f, acc : %f",
                    j + 1,

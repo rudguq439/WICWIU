@@ -14,7 +14,7 @@ public:
     }
 
     int Alloc(Tensorholder<float> *z, Tensorholder<float> *x, Tensorholder<float> *label){
-        this->setInput(z, x, label);
+        this->SetInput(3, z, x, label);
 
         // this->GetGenerator() = new my_Generator<float>(z);
         // this->GetDiscriminator() = new my_Discriminator<float>(this->GetGenerator());
@@ -28,9 +28,9 @@ public:
         this->SetLabel(label);
 
         // ======================= Select LossFunction ===================
-        this->SetGANLossFunctions(new VanilaGeneratorLoss<float>(this->GetDiscriminator(), this->GetLabel()), new VanilaDiscriminatorLoss<float>(this->GetDiscriminator(), this->GetLabel()));
+        this->SetGANLossFunctions(new VanilaGeneratorLoss<float>(this->GetDiscriminator(), this->GetLabel(), "VanilaGeneratorLoss"), new VanilaDiscriminatorLoss<float>(this->GetDiscriminator(), this->GetLabel(), "VanilaDiscriminatorLoss"));
 
         // ======================= Select Optimizer ===================
-        this->SetGANOptimizers(new RMSPropOptimizer<float>(GetParameter(), 0.01, 0.9, 1e-08, FALSE, MAXIMIZE), new RMSPropOptimizer<float>(GetParameter(), 0.01, 0.9, 1e-08, FALSE, MINIMIZE));
+        this->SetGANOptimizers(new RMSPropOptimizer<float>(this->GetGenerator()->GetParameter(), 0.01, 0.9, 1e-08, FALSE, MAXIMIZE), new RMSPropOptimizer<float>(this->GetDiscriminator()->GetParameter(), 0.01, 0.9, 1e-08, FALSE, MINIMIZE));
     }
 };

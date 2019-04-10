@@ -6,14 +6,14 @@
 template<typename DTYPE>
 class VanilaDiscriminatorLoss : public LossFunction<DTYPE>{
 public:
-    DiscriminatorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
+    VanilaDiscriminatorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
         #ifdef __DEBUG__
         std::cout << "DiscriminatorLoss::DiscriminatorLoss(Operator<DTYPE> *, MetaParameter *, std::string)" << '\n';
         #endif  // __DEBUG__
         this->Alloc(pOperator);
     }
 
-    virtual ~DiscriminatorLoss(){
+    virtual ~VanilaDiscriminatorLoss(){
         #ifdef __DEBUG__
         std::cout << "DiscriminatorLoss::~DiscriminatorLoss()" << '\n';
         #endif  // __DEBUG__
@@ -81,7 +81,7 @@ public:
         Tensor<DTYPE> *input_delta = this->GetOperator()->GetDelta();
 
         int batchsize = input->GetBatchSize();
-        int colsize   = input->GetColSize();
+        int channelsize = input->GetChannelSize();
         int rowsize   = input->GetRowSize();
         int colsize   = input->GetColSize();
         int capacity  = channelsize * rowsize * colsize;

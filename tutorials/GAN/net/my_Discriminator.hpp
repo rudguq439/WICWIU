@@ -6,14 +6,14 @@
 template<typename DTYPE> class my_Discriminator : public NeuralNetwork<DTYPE> {
 private:
 public:
-    my_Discriminator(Tensorholder<float> *x){
+    my_Discriminator(Operator<float> *x){
         Alloc(x);
     }
 
     virtual ~my_Discriminator() {
     }
 
-    int Alloc(Tensorholder<float> *x){
+    int Alloc(Operator<float> *x){
         this->SetInput(x);
 
         Operator<float> *out = x;

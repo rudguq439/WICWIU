@@ -6,14 +6,14 @@
 template<typename DTYPE> class my_Generator : public NeuralNetwork<DTYPE> {
 private:
 public:
-    my_Generator(Tensorholder<float> *z){
+    my_Generator(Operator<float> *z){
         Alloc(z);
     }
 
     virtual ~my_Generator() {
     }
 
-    int Alloc(Tensorholder<float> *z){
+    int Alloc(Operator<float> *z){
         this->SetInput(z);
 
         Operator<float> *out = z;
@@ -33,6 +33,6 @@ public:
         out = new BatchNormalizeLayer<DTYPE>(out, TRUE, "G_BN3");
         out = new Relu<float>(out, "G_Tanh3");
 
-        this->AnalayzeGraph(out);
+        this->AnalyzeGraph(out);
     }
 };
