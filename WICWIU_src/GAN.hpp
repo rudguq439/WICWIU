@@ -107,14 +107,14 @@ template<typename DTYPE> int GAN<DTYPE>::AllocLabel(int plabelValue){
     #ifdef __DEBUG__
     std::cout << "GAN<DTYPE>::AllocLabel(int plabel)" << '\n';
     #endif  // __DEBUG__
-    std::cout << "why?" << '\n';
+
     if(m_pLabel->GetResult()->GetShape())
         std::cout << "m_pLabel->GetResult()->GetShape() True " << '\n';
     else
         std::cout << "m_pLabel->GetResult()->GetShape() False " << '\n';
 
     m_pLabel->FeedTensor(Tensor<DTYPE>::Constants(m_pLabel->GetResult()->GetShape(), plabelValue));
-    std::cout << "why?2" << '\n';
+
 
     return true;
 }
@@ -267,42 +267,42 @@ template<typename DTYPE> int GAN<DTYPE>::TrainGeneratorOnCPU(){
 }
 
 template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnCPU(){
-    std::cout << "1"  << '\n';
+    std::cout << "GAN<DTYPE>::TrainDiscriminatorOnCPU()"  << '\n';
     this->ResetResult();
-    std::cout << "2" << '\n';
+    std::cout << "this->ResetResult()" << '\n';
     m_pDiscriminator->ResetGradient();
-    std::cout << "3" << '\n';
+    std::cout << "m_pDiscriminator->ResetGradient()" << '\n';
 
     this->ResetDiscriminatorLossFunctionResult();
-    std::cout << "4" << '\n';
+    std::cout << "this->ResetDiscriminatorLossFunctionResult()" << '\n';
     this->ResetDiscriminatorLossFunctionGradient();
-    std::cout << "5" << '\n';
+    std::cout << "  this->ResetDiscriminatorLossFunctionGradient()" << '\n';
 
     this->AllocLabel(REALLABEL);
-    std::cout << "6" << '\n';
+    std::cout << "this->AllocLabel(REALLABEL)" << '\n';
     m_pGenerator->SetResult(m_pRealData->GetResult());
-    std::cout << "7" << '\n';
+    std::cout << "m_pGenerator->SetResult(m_pRealData->GetResult())" << '\n';
     m_pDiscriminator->ForwardPropagate();
-    std::cout << "8" << '\n';
+    std::cout << "m_pDiscriminator->ForwardPropagate()" << '\n';
     m_aDiscriminatorLossFunction->ForwardPropagate();
-    std::cout << "9" << '\n';
+    std::cout << "m_aDiscriminatorLossFunction->ForwardPropagate()" << '\n';
     m_aDiscriminatorLossFunction->BackPropagate();
-    std::cout << "10"<< '\n';
+    std::cout << "m_aDiscriminatorLossFunction->BackPropagate()"<< '\n';
 
     this->AllocLabel(FAKELABEL);
-    std::cout << "11" << '\n';
+    std::cout << "this->AllocLabel(FAKELABEL)" << '\n';
     this->ForwardPropagate();
-    std::cout << "12" << '\n';
+    std::cout << "this->ForwardPropagate()" << '\n';
     m_aDiscriminatorLossFunction->ForwardPropagate();
-    std::cout << "13" << '\n';
+    std::cout << "m_aDiscriminatorLossFunction->ForwardPropagate()" << '\n';
     m_aDiscriminatorLossFunction->BackPropagate();
 
-    std::cout << "14" << '\n';
+    std::cout << "m_aDiscriminatorLossFunction->BackPropagate()" << '\n';
     m_pDiscriminator->BackPropagate();
 
-    std::cout << "15" << '\n';
+    std::cout << "m_pDiscriminator->BackPropagate()" << '\n';
     this->GetDiscriminatorOptimizer()->UpdateParameter();
-    std::cout << "16" << '\n';
+    std::cout << "this->GetDiscriminatorOptimizer()->UpdateParameter()" << '\n';
 
     return TRUE;
 }
