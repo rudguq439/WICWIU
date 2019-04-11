@@ -267,64 +267,26 @@ template<typename DTYPE> int GAN<DTYPE>::TrainGeneratorOnCPU(){
 }
 
 template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnCPU(){
-    // this->ResetResult();
-    // m_pDiscriminator->ResetGradient();
-    //
-    // this->ResetDiscriminatorLossFunctionResult();
-    // this->ResetDiscriminatorLossFunctionGradient();
-    //
-    // this->AllocLabel(REALLABEL);
-    // m_pGenerator->SetResult(m_pRealData->GetResult());
-    // m_pDiscriminator->ForwardPropagate();
-    // m_aDiscriminatorLossFunction->ForwardPropagate();
-    // m_aDiscriminatorLossFunction->BackPropagate();
-    //
-    // this->AllocLabel(FAKELABEL);
-    // this->ForwardPropagate();
-    // m_aDiscriminatorLossFunction->ForwardPropagate();
-    // m_aDiscriminatorLossFunction->BackPropagate();
-    //
-    // m_pDiscriminator->BackPropagate();
-    //
-    // this->GetDiscriminatorOptimizer()->UpdateParameter();
-
-
-    std::cout << "GAN<DTYPE>::TrainDiscriminatorOnCPU()"  << '\n';
     this->ResetResult();
-    std::cout << "this->ResetResult()" << '\n';
     m_pDiscriminator->ResetGradient();
-    std::cout << "m_pDiscriminator->ResetGradient()" << '\n';
 
     this->ResetDiscriminatorLossFunctionResult();
-    std::cout << "this->ResetDiscriminatorLossFunctionResult()" << '\n';
     this->ResetDiscriminatorLossFunctionGradient();
-    std::cout << "this->ResetDiscriminatorLossFunctionGradient()" << '\n';
 
     this->AllocLabel(REALLABEL);
-    std::cout << "this->AllocLabel(REALLABEL)" << '\n';
-    m_pGenerator->SetResult(m_pRealData->GetResult());
-    std::cout << "m_pGenerator->SetResult(m_pRealData->GetResult())" << '\n';
+    m_pGenerator->GetResult()->SetResult(new Tensor<DTYPE>(m_pRealData->GetResult()));
     m_pDiscriminator->ForwardPropagate();
-    std::cout << "m_pDiscriminator->ForwardPropagate()" << '\n';
     m_aDiscriminatorLossFunction->ForwardPropagate();
-    std::cout << "m_aDiscriminatorLossFunction->ForwardPropagate()" << '\n';
     m_aDiscriminatorLossFunction->BackPropagate();
-    std::cout << "m_aDiscriminatorLossFunction->BackPropagate()"<< '\n';
 
     this->AllocLabel(FAKELABEL);
-    std::cout << "this->AllocLabel(FAKELABEL)" << '\n';
     this->ForwardPropagate();
-    std::cout << "this->ForwardPropagate()" << '\n';
     m_aDiscriminatorLossFunction->ForwardPropagate();
-    std::cout << "m_aDiscriminatorLossFunction->ForwardPropagate()" << '\n';
     m_aDiscriminatorLossFunction->BackPropagate();
 
-    std::cout << "m_aDiscriminatorLossFunction->BackPropagate()" << '\n';
     m_pDiscriminator->BackPropagate();
 
-    std::cout << "m_pDiscriminator->BackPropagate()" << '\n';
     this->GetDiscriminatorOptimizer()->UpdateParameter();
-    std::cout << "this->GetDiscriminatorOptimizer()->UpdateParameter()" << '\n';
 
     return TRUE;
 }
@@ -368,7 +330,7 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnGPU(){
         this->ResetDiscriminatorLossFunctionGradient();
 
         this->AllocLabel(REALLABEL);
-        m_pGenerator->SetResult(m_pRealData->GetResult());
+        m_pGenerator->GetResult()->SetResult(new Tensor<DTYPE>(m_pRealData->GetResult()));
         m_pDiscriminator->ForwardPropagateOnGPU();
         m_aDiscriminatorLossFunction->ForwardPropagateOnGPU();
         m_aDiscriminatorLossFunction->BackPropagateOnGPU();
