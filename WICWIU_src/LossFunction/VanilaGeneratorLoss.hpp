@@ -71,7 +71,7 @@ public:
             end   = start + capacity;
 
             for (int i = start; i < end; i++) {
-                sumOfLossBatches += log((*input)[i] + m_epsilon);
+                sumOfLossBatches += -1.0 * log((*input)[i] + m_epsilon);
             }
         }
         if(batchsize != 0)
