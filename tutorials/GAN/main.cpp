@@ -5,12 +5,12 @@
 #include "../../WICWIU_src/Operator/NoiseGenerator/GaussianNoiseGenerator.hpp"
 #include <time.h>
 
-#define BATCH                 100
-#define EPOCH                 10
+#define BATCH                 64
+#define EPOCH                 100
 #define LOOP_FOR_TRAIN        (60000 / BATCH)
 #define LOOP_FOR_TEST         (10000 / BATCH)
 #define LOOP_FOR_TRAIN_DISC   5
-#define GPUID                 1
+#define GPUID                 0
 
 int main(int argc, char const *argv[]) {
     clock_t startTime, endTime;
@@ -28,12 +28,15 @@ int main(int argc, char const *argv[]) {
 
     // ======================= Select net ===================
     GAN<float> *net  = new my_GAN<float>(z, x, label);
+    // net->Load(filename);
 
     // ======================= Prepare Data ===================
     MNISTDataSet<float> *dataset = CreateMNISTDataSet<float>();
 
 #ifdef __CUDNN__
     net->SetDeviceGPU(GPUID);
+    net->GetGenerator()->SetDeviceGPU(GPUID);
+    net->GetDiscriminator()->SetDeviceGPU(GPUID);
 #endif  // __CUDNN__
 
     net->PrintGraphInformation();
@@ -72,47 +75,57 @@ int main(int argc, char const *argv[]) {
             dataset->CreateTrainDataPair(BATCH);
 
             Tensor<float> *x_t = dataset->GetTrainFeedImage();
+            Tensor<float> *l_t = dataset->GetTrainFeedLabel();
+            delete l_t;
             Tensor<float> *z_t = Gnoise->GetNoiseFromBuffer();
 
+            // string filePath2  = "generated/step" + std::to_string(j) + ".jpg";
+            // const char *cstr2 = filePath2.c_str();
+            // Tensor2Image<float>(x_t, cstr2, 3, 64, 28, 28);
 
 #ifdef __CUDNN__
             x_t->SetDeviceGPU(GPUID);
             z_t->SetDeviceGPU(GPUID);
 #endif  // __CUDNN__
+            net->FeedInputTensor(2, z_t, x_t);
             net->ResetParameterGradient();
-            for(int k = 0; k < LOOP_FOR_TRAIN_DISC; k++){
-                std::cout << "for(int k = 0; k < LOOP_FOR_TRAIN_DISC; k++)" << '\n';
-                net->FeedInputTensor(2, z_t, x_t);
-                std::cout << "net->FeedInputTensor(2, z_t, x_t)" << '\n';
-                net->TrainDiscriminator();
-                std::cout << "net->TrainDiscriminator()" << '\n';
-            }
+            net->TrainDiscriminator();
+            // genLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
+            // discLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
+            //
+            // printf("\rDisc Train complete percentage is %d / %d -> Generator Loss : %f, Discriminator Loss : %f\n",
+            //        j + 1,
+            //        LOOP_FOR_TRAIN,
+            //        genLoss,
+            //        discLoss);
+            //  fflush(stdout);
+
+            // dataset->CreateTrainDataPair(BATCH);
+            z_t = Gnoise->GetNoiseFromBuffer();
+
+#ifdef __CUDNN__
+            z_t->SetDeviceGPU(GPUID);
+#endif  // __CUDNN__
             net->FeedInputTensor(1, z_t);
-            std::cout << "net->FeedInputTensor(1, z_t)" << '\n';
+            net->ResetParameterGradient();
             net->TrainGenerator();
-            std::cout << "net->TrainGenerator()" << '\n';
 
-            genLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 1)];
-            discLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 1)];
+            genLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
+            discLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
 
-            printf("\rTrain complete percentage is %d / %d -> Generator Loss : %f, Discriminator Loss : %f",
+            printf("Train complete percentage is %d / %d -> Generator Loss : %f, Discriminator Loss : %f\n\n",
                    j + 1,
                    LOOP_FOR_TRAIN,
                    genLoss,
                    discLoss);
              fflush(stdout);
-
-            // ** Legacy of other main.cpp **
-            // train_accuracy += net->GetAccuracy();
-            // train_avg_loss += net->GetLoss();
-            //
-            // printf("\rTrain complete percentage is %d / %d -> loss : %f, acc : %f"  /*(ExcuteTime : %f)*/,
-            //        j + 1, LOOP_FOR_TRAIN,
-            //        train_avg_loss / (j + 1),
-            //        train_accuracy / (j + 1)
-            //        /*nProcessExcuteTime*/);
-            // fflush(stdout);
+             if(j%100 == 0){
+                 string filePath  = "generated/step" + std::to_string(i) + "_" + std::to_string(j) + ".jpg";
+                 const char *cstr = filePath.c_str();
+                 Tensor2Image<float>(net->GetGenerator()->GetResult()->GetResult(), cstr, 3, 20, 28, 28);
+             }
         }
+
 
         endTime            = clock();
         nProcessExcuteTime = ((double)(endTime - startTime)) / CLOCKS_PER_SEC;
@@ -134,8 +147,12 @@ int main(int argc, char const *argv[]) {
             net->FeedInputTensor(1, z_t);
             net->Test();
 
-            testGenLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 1)];
-            testDiscLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 1)];
+            // testGenLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
+            // testDiscLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
+
+            string filePath  = "eval/step" + std::to_string(i) + "_" + std::to_string(j) + ".jpg";
+            const char *cstr = filePath.c_str();
+            Tensor2Image<float>(net->GetGenerator()->GetResult()->GetResult(), cstr, 3, 20, 28, 28);
 
             printf("\rTest complete percentage is %d / %d -> loss : %f, acc : %f",
                    j + 1,
@@ -146,10 +163,11 @@ int main(int argc, char const *argv[]) {
         }
         std::cout << "\n\n";
 
+        net->Save(filename);
         // Global Optimal C(G) = -log4
-        if ( abs(- 1.0 * log(4) - bestGenLoss) > abs(- 1.0 * log(4) - testGenLoss) ) {
-            net->Save(filename);
-        }
+        // if ( abs(- 1.0 * log(4) - bestGenLoss) > abs(- 1.0 * log(4) - testGenLoss) ) {
+        //     net->Save(filename);
+        // }
     }
 
     //Stop making Noise
@@ -161,7 +179,3 @@ int main(int argc, char const *argv[]) {
 
     return 0;
 }
-
-// string filePath  = "MNIST.jpg";
-// const char *cstr = filePath.c_str();
-// Tensor2Image<float>(x_t, cstr, 3, 28, 28)
