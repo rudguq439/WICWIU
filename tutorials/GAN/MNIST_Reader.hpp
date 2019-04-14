@@ -5,6 +5,8 @@
 #include <ctime>
 #include <cstdlib>
 
+#include <turbojpeg.h>
+
 #include "../../WICWIU_src/Tensor.hpp"
 
 #define DIMOFMNISTIMAGE     784
@@ -272,7 +274,7 @@ template<typename DTYPE> void IMAGE_Reader(string DATAPATH, DTYPE **pImage) {
             for (int d = 0; d < dimOfImage; ++d) {
                 unsigned char data = 0;
                 fin.read((char *)&data, sizeof(data));
-                pImage[i][d] = (DTYPE)data / 255.0;
+                pImage[i][d] = ((DTYPE)data / 255.0 * 2) - 1;
             }
         }
     }
@@ -344,4 +346,52 @@ MNISTDataSet<DTYPE>* CreateMNISTDataSet() {
     dataset->SetTrainLabel(ReShapeData<DTYPE>(TRAINLABEL));
 
     return dataset;
+}
+template<typename DTYPE>
+// void Tensor2Image(Tensor<DTYPE> *temp, const char *FILENAME, int colorDim, int batch, int height, int width) {
+    // unsigned char *imgBuf   = new unsigned char[batch * colorDim * height * width];
+void Tensor2Image(Tensor<DTYPE> *temp, const char *FILENAME, int colorDim, int batch, int height, int width) {
+    unsigned char *imgBuf   = new unsigned char[colorDim * height * width];
+    int pixelFormat         = TJPF_RGB;
+    unsigned char *jpegBuf  = NULL;  /* Dynamically allocate the JPEG buffer */
+    unsigned long  jpegSize = 0;
+    FILE *jpegFile          = NULL;
+    tjhandle tjInstance     = NULL;
+
+    if (!temp) {
+        printf("Invalid Tensor pointer");
+        exit(-1);
+    }
+
+    // for(int ba = 0; ba < batch; ba++){
+        for (int ro = 0; ro < height; ro++) {
+            for (int co = 0; co < width; co++) {
+                for (int ch = 0; ch < colorDim; ch++) {
+                    // std::cout << "ba : " << ba << ", ro : " << ro << ", co : " << co << ", ch : " << ch << ", temp->Getshape()" << temp->GetShape() << "\n";
+                    // imgBuf[ba * height * width * colorDim + ro * width * colorDim + co * colorDim + ch] = (*temp)[Index5D(temp->GetShape(), 0, ba, 0, 0, ro * width + co)] * 255.0;
+                    imgBuf[ro * width * colorDim + co * colorDim + ch] = ((*temp)[Index5D(temp->GetShape(), 0, 0, 0, 0, ro * width + co)] + 1) * 255.0 / 2;
+
+                }
+                // std::cout << ", co : "<< ro * width + co << " : " << (*temp)[Index5D(temp->GetShape(), 0, 0, 0, 0, ro * width + co)] << '\n';
+            }
+        }
+    // }
+
+
+    tjInstance = tjInitCompress();
+    // tjCompress2(tjInstance, imgBuf, width, 0, height * batch, pixelFormat,
+    tjCompress2(tjInstance, imgBuf, width, 0, height, pixelFormat,
+                &jpegBuf, &jpegSize,  /*outSubsamp =*/ TJSAMP_444,  /*outQual =*/ 100,  /*flags =*/ 0);
+    tjDestroy(tjInstance);
+    tjInstance = NULL;
+    delete imgBuf;
+
+    if (!(jpegFile = fopen(FILENAME, "wb"))) {
+        printf("file open fail\n");
+        exit(-1);
+    }
+
+    fwrite(jpegBuf, jpegSize, 1, jpegFile);
+    fclose(jpegFile); jpegFile = NULL;
+    tjFree(jpegBuf); jpegBuf   = NULL;
 }
