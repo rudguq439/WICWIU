@@ -10,7 +10,7 @@
 #define LOOP_FOR_TRAIN        (60000 / BATCH)
 #define LOOP_FOR_TEST         (10000 / BATCH)
 #define LOOP_FOR_TRAIN_DISC   5
-#define GPUID                 0
+#define GPUID                 1
 
 using namespace std;
 

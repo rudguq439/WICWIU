@@ -117,7 +117,7 @@ template<typename DTYPE> int GAN<DTYPE>::AllocLabel(DTYPE plabelValue){
     m_pLabel->FeedTensor(Tensor<DTYPE>::Constants(m_timesize, m_batchsize, m_channelsize, m_rowsize, m_colsize, plabelValue));
 #ifdef __CUDNN__
 // m_pLabel->GetTensor()->SetDeviceGPU(this->GetDeviceID());
-    m_pLabel->GetTensor()->SetDeviceGPU(0);
+    m_pLabel->GetTensor()->SetDeviceGPU(1);
 #endif
 
     return true;
