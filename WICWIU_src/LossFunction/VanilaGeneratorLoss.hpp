@@ -76,6 +76,7 @@ public:
         }
         if(batchsize != 0)
             (*result)[0] = sumOfLossBatches / batchsize;
+        std::cout << ", Loss Forward " << (*result)[0] << "\n";
 
         return result;
     }

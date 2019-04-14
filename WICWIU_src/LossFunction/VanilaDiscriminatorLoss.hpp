@@ -76,12 +76,21 @@ public:
                 // Label = +1 --> Real input for D, so +1*logD(x)
                 // Label = -1 --> Fake input for D, so -1*logD(G(z))
                 // Add to result. So result = logD(x) - logD(G(z))
-                sumOfLossBatches += (*label)[i] * log((*input)[i] + m_epsilon);
+                sumOfLossBatches += (*label)[i] * log((*input)[i] + m_epsilon) + (1 - (*label)[i]) * log(1.0 - (*input)[i] + m_epsilon);
             }
 
         }
+        // std::cout << "(*label)[i] : " << (*label)[0] << '\n';
+        // std::cout << "(*input)[0] : " << (*input)[0] << ", ";
+        // std::cout << "(*label)[i] * log((*input)[i] + m_epsilon) : " << (*label)[0] * log((*input)[0] + m_epsilon) << '\n';
+        // std::cout << "(1 - (*label)[i]) * log(1.0 - (*input)[i] + m_epsilon) : " << (1 - (*label)[0]) * log(1.0 - (*input)[0] + m_epsilon) << '\n';
+        // std::cout << "(*label)[i] * log((*input)[i] + m_epsilon) + (1 - (*label)[i]) * log(1.0 - (*input)[i] + m_epsilon) : " << (*label)[0] * log((*input)[0] + m_epsilon) + (1 - (*label)[0]) * log(1.0 - (*input)[0] + m_epsilon) << '\n';
+        // std::cout << "sumOfLossBatches : " << sumOfLossBatches << '\n';
+
+
         if(batchsize != 0)
-            (*result)[0] = sumOfLossBatches / batchsize;
+            (*result)[0] += sumOfLossBatches / batchsize;
+        std::cout << ", Loss Forward " << (*result)[0] << "\n";
 
         return result;
     }
@@ -112,7 +121,7 @@ public:
                 // Label = +1 --> Real input for D, so +1 * logD(x)
                 // Label = -1 --> Fake input for D, so -1 * logD(G(z))
                 // Add to result. - 넣은 이유는, 위의 식을 따라가기 위함
-                (*input_delta)[i] += ( (*label)[i] / ((*input)[i] + m_epsilon) );
+                (*input_delta)[i] += -((*label)[i] / ((*input)[i] + m_epsilon) - (1 - (*label)[i]) / (1.0 - ((*input)[i] + m_epsilon)));
             }
 
         }
