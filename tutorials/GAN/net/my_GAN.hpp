@@ -31,6 +31,8 @@ public:
         this->SetGANLossFunctions(new VanilaGeneratorLoss<float>(this->GetDiscriminator(), this->GetLabel(), "VanilaGeneratorLoss"), new VanilaDiscriminatorLoss<float>(this->GetDiscriminator(), this->GetLabel(), "VanilaDiscriminatorLoss"));
 
         // ======================= Select Optimizer ===================
-        this->SetGANOptimizers(new RMSPropOptimizer<float>(this->GetGenerator()->GetParameter(), 0.01, 0.9, 1e-08, FALSE, MAXIMIZE), new RMSPropOptimizer<float>(this->GetDiscriminator()->GetParameter(), 0.01, 0.9, 1e-08, FALSE, MINIMIZE));
+        // this->SetGANOptimizers(new GradientDescentOptimizer<float>(this->GetGenerator()->GetParameter(), 0.000001, MINIMIZE), new GradientDescentOptimizer<float>(this->GetDiscriminator()->GetParameter(), 0.000001, MAXIMIZE));
+        // this->SetGANOptimizers(new RMSPropOptimizer<float>(this->GetGenerator()->GetParameter(), 0.0001, 0.9, 1e-08, FALSE, MINIMIZE), new RMSPropOptimizer<float>(this->GetDiscriminator()->GetParameter(), 0.0001, 0.9, 1e-08, FALSE, MAXIMIZE));
+        this->SetGANOptimizers(new AdamOptimizer<float>(this->GetGenerator()->GetParameter(), 0.0002, 0.5, 0.999, 1e-08, MAXIMIZE), new AdamOptimizer<float>(this->GetDiscriminator()->GetParameter(), 0.0001, 0.5, 0.999, 1e-08, MINIMIZE));
     }
 };
