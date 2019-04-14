@@ -3,7 +3,7 @@
 #include "NeuralNetwork.hpp"
 
 #define REALLABEL 1.f
-#define FAKELABEL -1.f
+#define FAKELABEL 0.f
 
 template<typename DTYPE> class GAN : public NeuralNetwork<DTYPE> {
 private:
@@ -115,6 +115,10 @@ template<typename DTYPE> int GAN<DTYPE>::AllocLabel(DTYPE plabelValue){
     int m_colsize = m_pLabel->GetResult()->GetDim(4);
 
     m_pLabel->FeedTensor(Tensor<DTYPE>::Constants(m_timesize, m_batchsize, m_channelsize, m_rowsize, m_colsize, plabelValue));
+#ifdef __CUDNN__
+// m_pLabel->GetTensor()->SetDeviceGPU(this->GetDeviceID());
+    m_pLabel->GetTensor()->SetDeviceGPU(0);
+#endif
 
     return true;
 }
@@ -171,12 +175,12 @@ template<typename DTYPE> void GAN<DTYPE>::SetGANLossFunctions(LossFunction<DTYPE
 
 template<typename DTYPE> LossFunction<DTYPE>* GAN<DTYPE>::SetGeneratorLossFunction(LossFunction<DTYPE> *pGenLoss){
     m_aGeneratorLossFunction = pGenLoss;
-    return m_aGeneratorLossFunction;
+    return m_pGenerator->SetLossFunction(pGenLoss);
 }
 
 template<typename DTYPE> LossFunction<DTYPE>* GAN<DTYPE>::SetDiscriminatorLossFunction(LossFunction<DTYPE> *pDiscLoss){
     m_aDiscriminatorLossFunction = pDiscLoss;
-    return m_aDiscriminatorLossFunction;
+    return m_pDiscriminator->SetLossFunction(pDiscLoss);
 }
 
 template<typename DTYPE> void GAN<DTYPE>::SetGANOptimizers(Optimizer<DTYPE> *pGenOpt, Optimizer<DTYPE> *pDiscOpt){
@@ -255,11 +259,9 @@ template<typename DTYPE> int GAN<DTYPE>::TrainGeneratorOnCPU(){
     this->ResetGeneratorLossFunctionResult();
     this->ResetGeneratorLossFunctionGradient();
 
-    this->AllocLabel(REALLABEL);
     this->ForwardPropagate();
     m_aGeneratorLossFunction->ForwardPropagate();
     m_aGeneratorLossFunction->BackPropagate();
-    this->BackPropagate();
 
     this->GetGeneratorOptimizer()->UpdateParameter();
 
@@ -276,11 +278,21 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnCPU(){
     this->AllocLabel(REALLABEL);
     m_pGenerator->GetResult()->SetResult(new Tensor<DTYPE>(m_pRealData->GetResult()));
     m_pDiscriminator->ForwardPropagate();
+    // for(int ba = 0; ba < 64; ba++){
+    //     std::cout << "Dis Dis Forward ba = : " << ba << " ===== " << (*m_pDiscriminator->GetResult()->GetResult())[Index5D(m_pDiscriminator->GetResult()->GetResult()->GetShape(), 0, ba, 0, 0, 0)] << '\n';
+    // }
+    // std::cout << '\n';
+
     m_aDiscriminatorLossFunction->ForwardPropagate();
     m_aDiscriminatorLossFunction->BackPropagate();
 
     this->AllocLabel(FAKELABEL);
     this->ForwardPropagate();
+    // for(int ba = 0; ba < 64; ba++){
+    //     std::cout << "Dis Gen Forward ba = : " << ba << " ===== " << (*m_pDiscriminator->GetResult()->GetResult())[Index5D(m_pDiscriminator->GetResult()->GetResult()->GetShape(), 0, ba, 0, 0, 0)] << '\n';
+    // }
+    // std::cout << '\n';
+
     m_aDiscriminatorLossFunction->ForwardPropagate();
     m_aDiscriminatorLossFunction->BackPropagate();
 
@@ -306,8 +318,8 @@ template<typename DTYPE> int GAN<DTYPE>::TrainGeneratorOnGPU(){
         this->ResetGeneratorLossFunctionResult();
         this->ResetGeneratorLossFunctionGradient();
 
-        this->AllocLabel(REALLABEL);
         this->ForwardPropagateOnGPU();
+        std::cout << "Generator Fake Data Forward : " << (*m_pDiscriminator->GetResult()->GetResult())[Index5D(m_pDiscriminator->GetResult()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
         m_aGeneratorLossFunction->ForwardPropagateOnGPU();
         m_aGeneratorLossFunction->BackPropagateOnGPU();
         this->BackPropagateOnGPU();
@@ -330,13 +342,23 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnGPU(){
         this->ResetDiscriminatorLossFunctionGradient();
 
         this->AllocLabel(REALLABEL);
-        m_pGenerator->GetResult()->SetResult(new Tensor<DTYPE>(m_pRealData->GetResult()));
+        Tensor<DTYPE> * t = new Tensor<DTYPE>(m_pRealData->GetResult());
+        t->SetDeviceGPU(0);
+        m_pGenerator->GetResult()->SetResult(t);
         m_pDiscriminator->ForwardPropagateOnGPU();
+        std::cout << "Discriminator True Data Forward : " << (*m_pDiscriminator->GetResult()->GetResult())[Index5D(m_pDiscriminator->GetResult()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
         m_aDiscriminatorLossFunction->ForwardPropagateOnGPU();
         m_aDiscriminatorLossFunction->BackPropagateOnGPU();
+        m_pDiscriminator->BackPropagateOnGPU();
+
+        this->ResetResult();
+        m_pDiscriminator->ResetGradient();
+        this->ResetDiscriminatorLossFunctionResult();
+        this->ResetDiscriminatorLossFunctionGradient();
 
         this->AllocLabel(FAKELABEL);
         this->ForwardPropagateOnGPU();
+        std::cout << "Discriminator Fake Data Forward : " << (*m_pDiscriminator->GetResult()->GetResult())[Index5D(m_pDiscriminator->GetResult()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
         m_aDiscriminatorLossFunction->ForwardPropagateOnGPU();
         m_aDiscriminatorLossFunction->BackPropagateOnGPU();
 
