@@ -102,7 +102,8 @@ public:
             end   = start + capacity;
 
             for (int i = start; i < end; i++) {
-                (*input_delta)[i] += - 1.0 / ((*input)[i] + m_epsilon);
+                // - logD(G(z)) --> - 1/logD(G(z)), sign :-
+                (*input_delta)[i] += 1.0 / ((*input)[i] + m_epsilon);
             }
         }
 
