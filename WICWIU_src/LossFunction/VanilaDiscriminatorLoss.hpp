@@ -76,7 +76,7 @@ public:
                 // Label = +1 --> Real input for D, so +1*logD(x)
                 // Label = -1 --> Fake input for D, so -1*logD(G(z))
                 // Add to result. So result = logD(x) - logD(G(z))
-                sumOfLossBatches += (*label)[i] * log((*input)[i] + m_epsilon) + (1 - (*label)[i]) * log(1.0 - (*input)[i] + m_epsilon);
+                sumOfLossBatches += - (*label)[i] * log((*input)[i] + m_epsilon) - (1 - (*label)[i]) * log(1.0 - (*input)[i] + m_epsilon);
             }
 
         }

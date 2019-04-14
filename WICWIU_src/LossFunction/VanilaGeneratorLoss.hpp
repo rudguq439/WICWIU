@@ -102,7 +102,7 @@ public:
             end   = start + capacity;
 
             for (int i = start; i < end; i++) {
-                (*input_delta)[i] += 1.0 / ((*input)[i] + m_epsilon);
+                (*input_delta)[i] += - 1.0 / ((*input)[i] + m_epsilon);
             }
         }
 
