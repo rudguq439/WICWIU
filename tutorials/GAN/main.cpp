@@ -5,12 +5,14 @@
 #include "../../WICWIU_src/Operator/NoiseGenerator/GaussianNoiseGenerator.hpp"
 #include <time.h>
 
-#define BATCH                 64
+#define BATCH                 32
 #define EPOCH                 100
 #define LOOP_FOR_TRAIN        (60000 / BATCH)
 #define LOOP_FOR_TEST         (10000 / BATCH)
 #define LOOP_FOR_TRAIN_DISC   5
 #define GPUID                 0
+
+using namespace std;
 
 int main(int argc, char const *argv[]) {
     clock_t startTime, endTime;
@@ -28,7 +30,7 @@ int main(int argc, char const *argv[]) {
 
     // ======================= Select net ===================
     GAN<float> *net  = new my_GAN<float>(z, x, label);
-    // net->Load(filename);
+    //net->Load(filename);
 
     // ======================= Prepare Data ===================
     MNISTDataSet<float> *dataset = CreateMNISTDataSet<float>();
@@ -113,7 +115,7 @@ int main(int argc, char const *argv[]) {
             genLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
             discLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
 
-            printf("Train complete percentage is %d / %d -> Generator Loss : %f, Discriminator Loss : %f\n\n",
+            printf("Train complete percentage is %d / %d -> Generator Loss : %f, Discriminator Loss : %f\n",
                    j + 1,
                    LOOP_FOR_TRAIN,
                    genLoss,
@@ -147,10 +149,10 @@ int main(int argc, char const *argv[]) {
             net->FeedInputTensor(1, z_t);
             net->Test();
 
-            // testGenLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
-            // testDiscLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
+            testGenLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
+            testDiscLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
 
-            string filePath  = "eval/step" + std::to_string(i) + "_" + std::to_string(j) + ".jpg";
+            string filePath  = "evaluated/step" + std::to_string(i) + "_" + std::to_string(j) + ".jpg";
             const char *cstr = filePath.c_str();
             Tensor2Image<float>(net->GetGenerator()->GetResult()->GetResult(), cstr, 3, 20, 28, 28);
 

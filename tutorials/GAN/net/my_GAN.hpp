@@ -2,6 +2,8 @@
 #include <string>
 
 #include "../../../WICWIU_src/GAN.hpp"
+#include "my_DCDisc.hpp"
+#include "my_DCGen.hpp"
 
 template<typename DTYPE> class my_GAN : public GAN<DTYPE> {
 private:
@@ -20,8 +22,15 @@ public:
         // this->GetDiscriminator() = new my_Discriminator<float>(this->GetGenerator());
         // this->AnalyzeGraph(this->GetDiscriminator());
 
-        this->SetGenerator(new my_Generator<float>(z));
-        this->SetDiscriminator(new my_Discriminator<float>(this->GetGenerator()));
+        // Vanlia GAN
+        // this->SetGenerator(new my_Generator<float>(z));
+        // this->SetDiscriminator(new my_Discriminator<float>(this->GetGenerator()));
+
+        // DCGAN
+        this->SetGenerator(new my_DCGen<float>(z)); 
+        this->SetDiscriminator(new my_DCDisc<float>(this->GetGenerator()));
+
+
         this->AnalyzeGraph(this->GetDiscriminator());
 
         this->SetRealData(x);
@@ -33,6 +42,6 @@ public:
         // ======================= Select Optimizer ===================
         // this->SetGANOptimizers(new GradientDescentOptimizer<float>(this->GetGenerator()->GetParameter(), 0.000001, MINIMIZE), new GradientDescentOptimizer<float>(this->GetDiscriminator()->GetParameter(), 0.000001, MAXIMIZE));
         // this->SetGANOptimizers(new RMSPropOptimizer<float>(this->GetGenerator()->GetParameter(), 0.0001, 0.9, 1e-08, FALSE, MINIMIZE), new RMSPropOptimizer<float>(this->GetDiscriminator()->GetParameter(), 0.0001, 0.9, 1e-08, FALSE, MAXIMIZE));
-        this->SetGANOptimizers(new AdamOptimizer<float>(this->GetGenerator()->GetParameter(), 0.0002, 0.5, 0.999, 1e-08, MAXIMIZE), new AdamOptimizer<float>(this->GetDiscriminator()->GetParameter(), 0.0001, 0.5, 0.999, 1e-08, MINIMIZE));
+        this->SetGANOptimizers(new AdamOptimizer<float>(this->GetGenerator()->GetParameter(), 0.000001, 0.5, 0.999, 1e-08, MAXIMIZE), new AdamOptimizer<float>(this->GetDiscriminator()->GetParameter(), 0.000001, 0.5, 0.999, 1e-08, MINIMIZE));
     }
 };
