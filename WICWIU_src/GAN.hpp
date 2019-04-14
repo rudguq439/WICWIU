@@ -343,7 +343,7 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnGPU(){
 
         this->AllocLabel(REALLABEL);
         Tensor<DTYPE> * t = new Tensor<DTYPE>(m_pRealData->GetResult());
-        t->SetDeviceGPU(0);
+        t->SetDeviceGPU(1);
         m_pGenerator->GetResult()->SetResult(t);
         m_pDiscriminator->ForwardPropagateOnGPU();
         std::cout << "Discriminator True Data Forward : " << (*m_pDiscriminator->GetResult()->GetResult())[Index5D(m_pDiscriminator->GetResult()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];

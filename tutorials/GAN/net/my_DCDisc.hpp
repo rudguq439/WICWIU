@@ -48,11 +48,11 @@ public:
 
         out = new ConvolutionLayer2D<float>(out, 1, 64, 4, 4, 2, 2, 1, 1, "D_Conv1");
         out = new BatchNormalizeLayer<float>(out, TRUE, "D_BN1");
-        out = new Relu<float>(out, "D_Relu1");
+        out = new LRelu<float>(out, 0.2, "D_Relu1");
 
         out = new ConvolutionLayer2D<float>(out, 64, 128, 4, 4, 2, 2, 1, 1, "D_Conv2");
         out = new BatchNormalizeLayer<float>(out, TRUE, "D_BN2");
-        out = new Relu<float>(out, "D_Relu2");
+        out = new LRelu<float>(out, 0.2,  "D_Relu2");
 
         out = new ReShape<float>(out, 1, 1, 128 * 7 * 7, "D_ReShape3");
         out = new Linear<float>(out, 128 * 7 * 7, 1);
