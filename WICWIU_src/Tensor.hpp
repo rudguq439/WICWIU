@@ -97,7 +97,7 @@ public:
     static Tensor<DTYPE>* Truncated_normal(Shape *pShape, float mean, float stddev, float trunc, IsUseTime pAnswer = UseTime);
     static Tensor<DTYPE>* Random_Uniform(int pSize0, int pSize1, int pSize2, int pSize3, int pSize4, float LowerLimit, float UpperLimit, IsUseTime pAnswer = UseTime);
     static Tensor<DTYPE>* Random_Uniform(Shape *pShape, float LowerLimit, float UpperLimit, IsUseTime pAnswer = UseTime);
-    
+
     static Tensor<DTYPE>* Zeros(int pSize0, int pSize1, int pSize2, int pSize3, int pSize4, IsUseTime pAnswer = UseTime);
     static Tensor<DTYPE>* Zeros(Shape *pShape, IsUseTime pAnswer = UseTime);
     static Tensor<DTYPE>* Constants(int pSize0, int pSize1, int pSize2, int pSize3, int pSize4, DTYPE constant, IsUseTime pAnswer = UseTime);
@@ -977,9 +977,9 @@ template<typename DTYPE> Tensor<DTYPE> *Tensor<DTYPE>::Random_normal(Shape *pSha
     #ifdef __DEBUG__
     std::cout << "Tensor<DTYPE>::Random_normal()" << '\n';
     #endif  // __DEBUG__
-    srand((unsigned)time(NULL));
-
     Tensor<DTYPE> *temp = new Tensor<DTYPE>(pShape, pAnswer);
+
+    srand((unsigned)time(NULL) + (unsigned int)((intptr_t)temp));
 
     int   capacity = temp->GetCapacity();
     DTYPE v1 = 0.f, v2 = 0.f, mid_result = 0.f;
@@ -1011,9 +1011,10 @@ template<typename DTYPE> Tensor<DTYPE> *Tensor<DTYPE>::Truncated_normal(Shape *p
     #ifdef __DEBUG__
     std::cout << "Tensor<DTYPE>::Truncated_norma" << '\n';
     #endif  // __DEBUG__
-    srand((unsigned)time(NULL));
 
     Tensor<DTYPE> *temp = new Tensor<DTYPE>(pShape, pAnswer);
+
+    srand((unsigned)time(NULL) + (unsigned int)((intptr_t)temp));
 
     int   capacity = temp->GetCapacity();
     DTYPE v1 = 0.f, v2 = 0.f, mid_result = 0.f;
@@ -1052,9 +1053,9 @@ template<typename DTYPE> Tensor<DTYPE> *Tensor<DTYPE>::Random_Uniform(Shape *pSh
     #ifdef __DEBUG__
     std::cout << "Tensor<DTYPE>::Random_Uniform" << '\n';
     #endif  // __DEBUG__
-    srand((unsigned)time(NULL));
-
     Tensor<DTYPE> *temp = new Tensor<DTYPE>(pShape, pAnswer);
+
+    srand((unsigned)time(NULL) + (unsigned int)((intptr_t)temp));
 
     int   capacity = temp->GetCapacity();
     // Random number generator(Uniform)
