@@ -5,8 +5,8 @@
 #include "../../WICWIU_src/Operator/NoiseGenerator/GaussianNoiseGenerator.hpp"
 #include <time.h>
 
-#define BATCH                 32
-#define EPOCH                 100
+#define BATCH                 64
+#define EPOCH                 500
 #define LOOP_FOR_TRAIN        (60000 / BATCH)
 #define LOOP_FOR_TEST         (10000 / BATCH)
 #define LOOP_FOR_TRAIN_DISC   5
