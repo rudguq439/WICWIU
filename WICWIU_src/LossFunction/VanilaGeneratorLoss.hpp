@@ -16,7 +16,9 @@ public:
     }
 
     VanilaGeneratorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
+        #ifdef __DEBUG__
         std::cout << "VanilaGeneratorLoss::VanilaGeneratorLoss(Operator<DTYPE> *, MetaParameter *, std::string)" << '\n';
+        #endif  // __DEBUG__
         this->Alloc(pOperator, 1e-6f);
     }
 
