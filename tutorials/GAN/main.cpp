@@ -6,7 +6,7 @@
 #include <time.h>
 
 #define BATCH                 64
-#define EPOCH                 500
+#define EPOCH                 300
 #define LOOP_FOR_TRAIN        (60000 / BATCH)
 #define LOOP_FOR_TEST         (10000 / BATCH)
 #define LOOP_FOR_TRAIN_DISC   5
