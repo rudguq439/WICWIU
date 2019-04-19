@@ -36,9 +36,7 @@ int main(int argc, char const *argv[]) {
     MNISTDataSet<float> *dataset = CreateMNISTDataSet<float>();
 
 #ifdef __CUDNN__
-    net->SetDeviceGPU(GPUID);
-    net->GetGenerator()->SetDeviceGPU(GPUID);
-    net->GetDiscriminator()->SetDeviceGPU(GPUID);
+    net->SetDeviceGPUOnGAN(GPUID);
 #endif  // __CUDNN__
 
     net->PrintGraphInformation();

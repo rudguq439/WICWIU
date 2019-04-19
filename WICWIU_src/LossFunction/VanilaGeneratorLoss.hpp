@@ -16,7 +16,9 @@ public:
     }
 
     VanilaGeneratorLoss(Operator<DTYPE> *pOperator, Operator<DTYPE> *pLabel, std::string pName) : LossFunction<DTYPE>(pOperator, pLabel, pName){
+        #ifdef __DEBUG__
         std::cout << "VanilaGeneratorLoss::VanilaGeneratorLoss(Operator<DTYPE> *, MetaParameter *, std::string)" << '\n';
+        #endif  // __DEBUG__
         this->Alloc(pOperator, 1e-6f);
     }
 
@@ -102,8 +104,8 @@ public:
             end   = start + capacity;
 
             for (int i = start; i < end; i++) {
-                // - logD(G(z)) --> - 1/logD(G(z)), sign :-
-                (*input_delta)[i] += 1.0 / ((*input)[i] + m_epsilon);
+                // logD(G(z)) --> 1/logD(G(z)), sign flipped ,,
+                (*input_delta)[i] += - 1.0 / ((*input)[i] + m_epsilon);
             }
         }
 
