@@ -105,7 +105,7 @@ public:
 
             for (int i = start; i < end; i++) {
                 // logD(G(z)) --> 1/logD(G(z)), sign flipped ,,
-                (*input_delta)[i] += - 1.0 / ((*input)[i] + m_epsilon);
+                (*input_delta)[i] += 1.0 / ((*input)[i] + m_epsilon);
             }
         }
 
