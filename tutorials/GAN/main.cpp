@@ -10,7 +10,7 @@
 #define LOOP_FOR_TRAIN        (60000 / BATCH)
 #define LOOP_FOR_TEST         (10000 / BATCH)
 #define LOOP_FOR_TRAIN_DISC   5
-#define GPUID                 1
+#define GPUID                 0
 
 using namespace std;
 
@@ -59,13 +59,6 @@ int main(int argc, char const *argv[]) {
 
     for (int i = epoch + 1; i < EPOCH; i++) {
         std::cout << "EPOCH : " << i << '\n';
-
-        // if ((i + 1) % 50 == 0) {
-        //     std::cout << "Change learning rate!" << '\n';
-        //     float lr = net->GetOptimizer()->GetLearningRate();
-        //     net->GetOptimizer()->SetLearningRate(lr * 0.1);
-        // }
-
         // ======================= Train =======================
         float genLoss  = 0.f;
         float discLoss = 0.f;
@@ -81,10 +74,6 @@ int main(int argc, char const *argv[]) {
             delete l_t;
             Tensor<float> *z_t = Gnoise->GetNoiseFromBuffer();
 
-            // string filePath2  = "generated/step" + std::to_string(j) + ".jpg";
-            // const char *cstr2 = filePath2.c_str();
-            // Tensor2Image<float>(x_t, cstr2, 3, 64, 28, 28);
-
 #ifdef __CUDNN__
             x_t->SetDeviceGPU(GPUID);
             z_t->SetDeviceGPU(GPUID);
@@ -92,17 +81,7 @@ int main(int argc, char const *argv[]) {
             net->FeedInputTensor(2, z_t, x_t);
             net->ResetParameterGradient();
             net->TrainDiscriminator();
-            // genLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
-            // discLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
-            //
-            // printf("\rDisc Train complete percentage is %d / %d -> Generator Loss : %f, Discriminator Loss : %f\n",
-            //        j + 1,
-            //        LOOP_FOR_TRAIN,
-            //        genLoss,
-            //        discLoss);
-            //  fflush(stdout);
 
-            // dataset->CreateTrainDataPair(BATCH);
             z_t = Gnoise->GetNoiseFromBuffer();
 
 #ifdef __CUDNN__
@@ -127,7 +106,6 @@ int main(int argc, char const *argv[]) {
                  Tensor2Image<float>(net->GetGenerator()->GetResult()->GetResult(), cstr, 3, 20, 28, 28);
              }
         }
-
 
         endTime            = clock();
         nProcessExcuteTime = ((double)(endTime - startTime)) / CLOCKS_PER_SEC;

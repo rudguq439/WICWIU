@@ -117,7 +117,7 @@ template<typename DTYPE> int GAN<DTYPE>::AllocLabel(DTYPE plabelValue){
     m_pLabel->FeedTensor(Tensor<DTYPE>::Constants(m_timesize, m_batchsize, m_channelsize, m_rowsize, m_colsize, plabelValue));
 #ifdef __CUDNN__
 // m_pLabel->GetTensor()->SetDeviceGPU(this->GetDeviceID());
-    m_pLabel->GetTensor()->SetDeviceGPU(1);
+    m_pLabel->GetTensor()->SetDeviceGPU(0);
 #endif
 
     return true;
@@ -278,20 +278,12 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnCPU(){
     this->AllocLabel(REALLABEL);
     m_pGenerator->GetResult()->SetResult(new Tensor<DTYPE>(m_pRealData->GetResult()));
     m_pDiscriminator->ForwardPropagate();
-    // for(int ba = 0; ba < 64; ba++){
-    //     std::cout << "Dis Dis Forward ba = : " << ba << " ===== " << (*m_pDiscriminator->GetResult()->GetResult())[Index5D(m_pDiscriminator->GetResult()->GetResult()->GetShape(), 0, ba, 0, 0, 0)] << '\n';
-    // }
-    // std::cout << '\n';
 
     m_aDiscriminatorLossFunction->ForwardPropagate();
     m_aDiscriminatorLossFunction->BackPropagate();
 
     this->AllocLabel(FAKELABEL);
     this->ForwardPropagate();
-    // for(int ba = 0; ba < 64; ba++){
-    //     std::cout << "Dis Gen Forward ba = : " << ba << " ===== " << (*m_pDiscriminator->GetResult()->GetResult())[Index5D(m_pDiscriminator->GetResult()->GetResult()->GetShape(), 0, ba, 0, 0, 0)] << '\n';
-    // }
-    // std::cout << '\n';
 
     m_aDiscriminatorLossFunction->ForwardPropagate();
     m_aDiscriminatorLossFunction->BackPropagate();
@@ -343,7 +335,7 @@ template<typename DTYPE> int GAN<DTYPE>::TrainDiscriminatorOnGPU(){
 
         this->AllocLabel(REALLABEL);
         Tensor<DTYPE> * t = new Tensor<DTYPE>(m_pRealData->GetResult());
-        t->SetDeviceGPU(1);
+        t->SetDeviceGPU(0);
         m_pGenerator->GetResult()->SetResult(t);
         m_pDiscriminator->ForwardPropagateOnGPU();
         std::cout << "Discriminator True Data Forward : " << (*m_pDiscriminator->GetResult()->GetResult())[Index5D(m_pDiscriminator->GetResult()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
