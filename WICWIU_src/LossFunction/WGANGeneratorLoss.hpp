@@ -60,7 +60,7 @@ public:
             end   = start + capacity;
 
             for (int i = start; i < end; i++) {
-                sumOfLossBatches += (*input)[i];
+                sumOfLossBatches += - (*input)[i];
             }
         }
         if(batchsize != 0)
@@ -92,7 +92,7 @@ public:
             end   = start + capacity;
 
             for (int i = start; i < end; i++) {
-                (*input_delta)[i] += 1.f ;
+                (*input_delta)[i] += - 1.f ;
             }
         }
 
