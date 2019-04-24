@@ -1,3 +1,5 @@
+#include "LossFunction/WGANDiscriminatorLoss.hpp"
+#include "LossFunction/WGANGeneratorLoss.hpp"
 #include "LossFunction/VanilaGeneratorLoss.hpp"
 #include "LossFunction/VanilaDiscriminatorLoss.hpp"
 #include "NeuralNetwork.hpp"

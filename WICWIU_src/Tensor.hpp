@@ -81,6 +81,8 @@ public:
     int                      Save(FILE *fileForSave);
     int                      Load(FILE *fileForLoad);
 
+    void                     Clip(float min, float max);
+
 #ifdef __CUDNN__
     void                     SetDeviceGPU(unsigned int idOfDevice);
 
@@ -102,7 +104,6 @@ public:
     static Tensor<DTYPE>* Zeros(Shape *pShape, IsUseTime pAnswer = UseTime);
     static Tensor<DTYPE>* Constants(int pSize0, int pSize1, int pSize2, int pSize3, int pSize4, DTYPE constant, IsUseTime pAnswer = UseTime);
     static Tensor<DTYPE>* Constants(Shape *pShape, DTYPE constant, IsUseTime pAnswer = UseTime);
-
 };
 
 //////////////////////////////////////////////////////////////////////////////// for private method
@@ -830,6 +831,39 @@ template<typename DTYPE> int Tensor<DTYPE>::Load(FILE *fileForLoad) {
     return TRUE;
 }
 
+template<typename DTYPE> void Tensor<DTYPE>::Clip(float min, float max) {
+    #ifdef __DEBUG__
+    std::cout << "Tensor<DTYPE>::Clip()" << '\n';
+    #endif  // __DEBUG__
+
+    int timesize    = this->GetTimeSize();
+    int batchsize   = this->GetBatchSize();
+    int channelsize = this->GetChannelSize();
+    int rowsize     = this->GetRowSize();
+    int colsize     = this->GetColSize();
+
+    Shape *resultTenShape = this->GetShape();
+    int index = 0;
+
+    int ti = 0;
+    for (int ba = 0; ba < batchsize; ba++) {
+        for (int ch = 0; ch < channelsize; ch++) {
+            for (int ro = 0; ro < rowsize; ro++) {
+                for (int co = 0; co < colsize; co++) {
+                    index = (((ti * (*resultTenShape)[1] + ba) * (*resultTenShape)[2] + ch) * (*resultTenShape)[3] + ro) * (*resultTenShape)[4] + co;
+                            if( (*m_aLongArray)[index] < min )
+                                (*m_aLongArray)[index] = min;
+                            else if( (*m_aLongArray)[index] > max )
+                                (*m_aLongArray)[index] = max;
+                        
+                }
+            }
+        }
+    }
+    
+    return;
+}
+
 #ifdef __CUDNN__
 template<typename DTYPE> void Tensor<DTYPE>::SetDeviceGPU(unsigned int idOfDevice) {
     # if __DEBUG__
@@ -1217,3 +1251,4 @@ inline unsigned int Index2D(Shape *pShape, int ro, int co) {
     return ro * (*pShape)[1] + co;
 }
 #endif  // TENSOR_H_
+

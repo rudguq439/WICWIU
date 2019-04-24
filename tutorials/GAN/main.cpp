@@ -76,9 +76,11 @@ int main(int argc, char const *argv[]) {
             x_t->SetDeviceGPU(GPUID);
             z_t->SetDeviceGPU(GPUID);
 #endif  // __CUDNN__
+
             net->FeedInputTensor(2, z_t, x_t);
             net->ResetParameterGradient();
             net->TrainDiscriminator();
+            net->GetDiscriminator()->GetResult()->GetResult()->Clip(-0.01, 0.01);
 
             z_t = Gnoise->GetNoiseFromBuffer();
 
