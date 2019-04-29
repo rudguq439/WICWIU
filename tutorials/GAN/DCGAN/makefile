@@ -7,23 +7,23 @@ ENABLE_CUDNN = -D__CUDNN__
 LFLAGS = -lcudart -lcudnn -lpthread -ljpeg -lturbojpeg
 
 INCLUDE_PATH = -I/usr/local/cuda/include -I/opt/libjpeg-turbo/include -I/opt/libjpeg-turbo/lib64
-LIB_PATH = -L. -L/usr/local/cuda/lib64 -I/opt/libjpeg-turbo/lib64 # for deep05
-# LIB_PATH = -L. -L/usr/local/cuda/lib64 -L/opt/libjpeg-turbo/lib64 # for deep300
+# LIB_PATH = -L. -L/usr/local/cuda/lib64 -I/opt/libjpeg-turbo/lib64 # for deep05
+LIB_PATH = -L. -L/usr/local/cuda/lib64 -L/opt/libjpeg-turbo/lib64 # for deep300
 
 CC = g++
 NVCC = nvcc
 
-WICWIU_LIB = ../../lib/libwicwiu.a
+WICWIU_LIB = ../../../lib/libwicwiu.a
 
 WICWIU_SRCS = \
-	../../WICWIU_src/Shape.cpp	\
-	../../WICWIU_src/LongArray.cpp	\
-	../../WICWIU_src/Tensor.cpp	\
-	../../WICWIU_src/Operator.cpp	\
-	../../WICWIU_src/LossFunction.cpp	\
-	../../WICWIU_src/Optimizer.cpp	\
-	../../WICWIU_src/Module.cpp	\
-	../../WICWIU_src/NeuralNetwork.cpp
+	../../../WICWIU_src/Shape.cpp	\
+	../../../WICWIU_src/LongArray.cpp	\
+	../../../WICWIU_src/Tensor.cpp	\
+	../../../WICWIU_src/Operator.cpp	\
+	../../../WICWIU_src/LossFunction.cpp	\
+	../../../WICWIU_src/Optimizer.cpp	\
+	../../../WICWIU_src/Module.cpp	\
+	../../../WICWIU_src/NeuralNetwork.cpp
 
 WICWIU_OBJS = ${WICWIU_SRCS:.cpp=.o}
 
@@ -41,7 +41,7 @@ main: main.o $(WICWIU_LIB)
 
 
 $(WICWIU_LIB): $(WICWIU_SRC)
-	make -C ../..
+	make -C ../../..
 
 clean:
 	rm -rf *.o main
@@ -52,4 +52,4 @@ clean_img:
 
 clean_all:
 	rm -rf *.o main
-	make clean -C ../..
+	make clean -C ../../..

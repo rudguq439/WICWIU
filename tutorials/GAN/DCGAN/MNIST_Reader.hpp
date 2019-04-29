@@ -7,7 +7,7 @@
 
 #include <turbojpeg.h>
 
-#include "../../WICWIU_src/Tensor.hpp"
+#include "../../../WICWIU_src/Tensor.hpp"
 
 #define DIMOFMNISTIMAGE     784
 #define DIMOFMNISTLABEL     10
@@ -15,10 +15,10 @@
 #define NUMOFTESTDATA       10000
 #define NUMOFTRAINDATA      60000
 
-#define TEST_IMAGE_FILE     "data/t10k-images-idx3-ubyte"
-#define TEST_LABEL_FILE     "data/t10k-labels-idx1-ubyte"
-#define TRAIN_IMAGE_FILE    "data/train-images-idx3-ubyte"
-#define TRAIN_LABEL_FILE    "data/train-labels-idx1-ubyte"
+#define TEST_IMAGE_FILE     "../data/t10k-images-idx3-ubyte"
+#define TEST_LABEL_FILE     "../data/t10k-labels-idx1-ubyte"
+#define TRAIN_IMAGE_FILE    "../data/train-images-idx3-ubyte"
+#define TRAIN_LABEL_FILE    "../data/train-labels-idx1-ubyte"
 
 using namespace std;
 

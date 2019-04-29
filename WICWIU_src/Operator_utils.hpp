@@ -25,4 +25,10 @@
 #include "Operator/Softmax.hpp"
 // #include "Operator/Dropout.h"
 
+#include "Operator/SwitchInput.hpp"
+
+#include "Operator/NoiseGenerator/GaussianNoiseGenerator.hpp"
+
+#include "Operator/MSEOP.hpp"
+
 #endif  // __OPERATER_UTIL_H__

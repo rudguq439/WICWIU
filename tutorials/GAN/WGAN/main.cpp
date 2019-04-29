@@ -1,16 +1,13 @@
-#include "net/my_Generator.hpp"
-#include "net/my_Discriminator.hpp"
 #include "net/my_GAN.hpp"
 #include "MNIST_Reader.hpp"
-#include "../../WICWIU_src/Operator/NoiseGenerator/GaussianNoiseGenerator.hpp"
 #include <time.h>
 
-#define BATCH                 64
-#define EPOCH                 300
+#define BATCH                 32
+#define EPOCH                 100
 #define LOOP_FOR_TRAIN        (60000 / BATCH)
 #define LOOP_FOR_TEST         (10000 / BATCH)
 #define LOOP_FOR_TRAIN_DISC   5
-#define GPUID                 0
+#define GPUID                 3
 
 using namespace std;
 
@@ -27,8 +24,8 @@ int main(int argc, char const *argv[]) {
     // create NoiseGenrator
     GaussianNoiseGenerator<float> *Gnoise = new GaussianNoiseGenerator<float>(1, BATCH, 1, 1, 100, 0, 1);
 
-
     // ======================= Select net ===================
+    // GAN<float> *net  = new my_BEGAN<float>(z, x, label);
     GAN<float> *net  = new my_GAN<float>(z, x, label);
     //net->Load(filename);
 
@@ -79,6 +76,7 @@ int main(int argc, char const *argv[]) {
             net->FeedInputTensor(2, z_t, x_t);
             net->ResetParameterGradient();
             net->TrainDiscriminator();
+            net->Clip(-0.01, 0.01);
 
             z_t = Gnoise->GetNoiseFromBuffer();
 
@@ -92,14 +90,14 @@ int main(int argc, char const *argv[]) {
             genLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
             discLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
 
-            printf("Train complete percentage is %d / %d -> Generator Loss : %f, Discriminator Loss : %f\n",
+            printf("\rTrain complete percentage is %d / %d -> Generator Loss : %f, Discriminator Loss : %f",
                    j + 1,
                    LOOP_FOR_TRAIN,
                    genLoss,
                    discLoss);
              fflush(stdout);
-             if(j%100 == 0){
-                 string filePath  = "generated/step" + std::to_string(i) + "_" + std::to_string(j) + ".jpg";
+             if(j%10 == 0){
+                 string filePath  = "generated/epoch" + std::to_string(i) + "_" + std::to_string(j) + ".jpg";
                  const char *cstr = filePath.c_str();
                  Tensor2Image<float>(net->GetGenerator()->GetResult()->GetResult(), cstr, 3, 20, 28, 28);
              }
@@ -128,7 +126,7 @@ int main(int argc, char const *argv[]) {
             testGenLoss  = (*net->GetGeneratorLossFunction()->GetResult())[Index5D(net->GetGeneratorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
             testDiscLoss  = (*net->GetDiscriminatorLossFunction()->GetResult())[Index5D(net->GetDiscriminatorLossFunction()->GetResult()->GetShape(), 0, 0, 0, 0, 0)];
 
-            string filePath  = "evaluated/step" + std::to_string(i) + "_" + std::to_string(j) + ".jpg";
+            string filePath  = "evaluated/epoch" + std::to_string(i) + "_" + std::to_string(j) + ".jpg";
             const char *cstr = filePath.c_str();
             Tensor2Image<float>(net->GetGenerator()->GetResult()->GetResult(), cstr, 3, 20, 28, 28);
 

@@ -81,6 +81,7 @@ public:
     int                      Save(FILE *fileForSave);
     int                      Load(FILE *fileForLoad);
 
+    void                     Clip(float min, float max);
 #ifdef __CUDNN__
     void                     SetDeviceGPU(unsigned int idOfDevice);
 
@@ -371,7 +372,7 @@ template<typename DTYPE> Tensor<DTYPE>::~Tensor() {
 */
 template<typename DTYPE> Shape *Tensor<DTYPE>::GetShape() {
     #ifdef __DEBUG__
-    std::cout << "Tensor<DTYPE>::GetShape()" << '\n';
+    // std::cout << "Tensor<DTYPE>::GetShape()" << '\n';
     #endif  // __DEBUG__
 
     return m_aShape;
@@ -449,7 +450,7 @@ template<typename DTYPE> int Tensor<DTYPE>::GetElement(unsigned int index) {
 template<typename DTYPE> DTYPE& Tensor<DTYPE>::operator[](unsigned int index) {
     #ifdef __CUDNN__
     # if __DEBUG__
-    std::cout << "Tensor<DTYPE>::operator[](unsigned int index)" << '\n';
+    // std::cout << "Tensor<DTYPE>::operator[](unsigned int index)" << '\n';
 
     if (m_Device == GPU) {
         printf("Warning! Tensor is allocated in Device(GPU) latest time\n");
@@ -828,6 +829,39 @@ template<typename DTYPE> int Tensor<DTYPE>::Load(FILE *fileForLoad) {
     m_aLongArray->Load(fileForLoad);
 
     return TRUE;
+}
+
+template<typename DTYPE> void Tensor<DTYPE>::Clip(float min, float max) {
+    #ifdef __DEBUG__
+    std::cout << "Tensor<DTYPE>::Clip()" << '\n';
+    #endif  // __DEBUG__
+
+    int timesize    = this->GetTimeSize();
+    int batchsize   = this->GetBatchSize();
+    int channelsize = this->GetChannelSize();
+    int rowsize     = this->GetRowSize();
+    int colsize     = this->GetColSize();
+
+    Shape *resultTenShape = this->GetShape();
+    int index = 0;
+
+    int ti = 0;
+    for (int ba = 0; ba < batchsize; ba++) {
+        for (int ch = 0; ch < channelsize; ch++) {
+            for (int ro = 0; ro < rowsize; ro++) {
+                for (int co = 0; co < colsize; co++) {
+                    index = (((ti * (*resultTenShape)[1] + ba) * (*resultTenShape)[2] + ch) * (*resultTenShape)[3] + ro) * (*resultTenShape)[4] + co;
+                            if( (*m_aLongArray)[index] < min )
+                                (*m_aLongArray)[index] = min;
+                            else if( (*m_aLongArray)[index] > max )
+                                (*m_aLongArray)[index] = max;
+
+                }
+            }
+        }
+    }
+
+    return;
 }
 
 #ifdef __CUDNN__
